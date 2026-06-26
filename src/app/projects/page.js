@@ -85,46 +85,46 @@ const STATUS_CONFIG = {
   current: {
     label: "Current",
     description: "Active & in development",
-    dot: "bg-green-400",
-    border: "border-green-500/30",
-    text: "text-green-400",
-    badge: "bg-green-500/10",
+    dot: "bg-green-500",
+    border: "border-green-200",
+    text: "text-green-700",
+    badge: "bg-green-50",
   },
   previous: {
     label: "Previous",
     description: "Completed projects",
-    dot: "bg-blue-400",
-    border: "border-blue-500/30",
-    text: "text-blue-400",
-    badge: "bg-blue-500/10",
+    dot: "bg-blue-500",
+    border: "border-blue-200",
+    text: "text-blue-700",
+    badge: "bg-blue-50",
   },
   future: {
     label: "Future",
     description: "Planned & upcoming",
-    dot: "bg-purple-400",
-    border: "border-purple-500/30",
-    text: "text-purple-400",
-    badge: "bg-purple-500/10",
+    dot: "bg-purple-500",
+    border: "border-purple-200",
+    text: "text-purple-700",
+    badge: "bg-purple-50",
   },
 };
 
 // ── TAG COLOR MAP ─────────────────────────────────────────────
 const TAG_COLORS = {
-  blue:   "bg-blue-500/10   border-blue-500/20   text-blue-400",
-  green:  "bg-green-500/10  border-green-500/20  text-green-400",
-  purple: "bg-purple-500/10 border-purple-500/20 text-purple-400",
-  orange: "bg-orange-500/10 border-orange-500/20 text-orange-400",
-  yellow: "bg-yellow-500/10 border-yellow-500/20 text-yellow-400",
-  red:    "bg-red-500/10    border-red-500/20    text-red-400",
+  blue:   "bg-blue-50   border-blue-200   text-blue-700",
+  green:  "bg-green-50  border-green-200  text-green-700",
+  purple: "bg-purple-50 border-purple-200 text-purple-700",
+  orange: "bg-orange-50 border-orange-200 text-orange-700",
+  yellow: "bg-yellow-50 border-yellow-200 text-yellow-700",
+  red:    "bg-red-50    border-red-200    text-red-700",
 };
 
 // ── HIGHLIGHT RENDERER ────────────────────────────────────────
-// Automatically bolds any metric containing a number + % (e.g. "104% increase")
+// Automatically bolds any metric containing a number + %
 function renderHighlight(text) {
   const parts = text.split(/(\d+%[^.]*)/);
   return parts.map((part, i) =>
     /\d+%/.test(part) ? (
-      <strong key={i} className="text-blue-400 font-bold">{part}</strong>
+      <strong key={i} className="text-blue-700 font-bold">{part}</strong>
     ) : part
   );
 }
@@ -149,13 +149,13 @@ export default function ProjectsPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
           Engineering Projects
         </h1>
-        <p className="text-sm text-slate-500 mt-1">
+        <p className="text-sm text-slate-500 mt-1 font-mono">
           Core architectural tracks and technical engineering executions
         </p>
-        <div className="h-1 w-12 bg-blue-500 rounded mt-4" />
+        <div className="h-1 w-12 bg-blue-600 rounded mt-4" />
       </div>
 
       {/* Layout: sidebar + cards */}
@@ -163,7 +163,7 @@ export default function ProjectsPage() {
 
         {/* ── Sidebar ── */}
         <aside className="md:w-52 flex-shrink-0 space-y-2">
-          <p className="text-[10px] font-mono uppercase tracking-widest text-slate-600 mb-3">
+          <p className="text-[10px] font-mono uppercase tracking-widest text-slate-400 mb-3">
             Filter by Status
           </p>
 
@@ -172,12 +172,12 @@ export default function ProjectsPage() {
             onClick={() => setActiveFilter("all")}
             className={`w-full text-left px-4 py-3 rounded-xl border text-sm font-mono transition-all flex justify-between items-center ${
               activeFilter === "all"
-                ? "bg-slate-800 border-slate-600 text-white"
-                : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                ? "bg-blue-600 border-blue-600 text-white"
+                : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900"
             }`}
           >
             <span>All Projects</span>
-            <span className="text-xs bg-slate-700/50 px-1.5 py-0.5 rounded">
+            <span className={`text-xs px-1.5 py-0.5 rounded ${activeFilter === "all" ? "bg-blue-500" : "bg-slate-100"}`}>
               {counts.all}
             </span>
           </button>
@@ -189,33 +189,31 @@ export default function ProjectsPage() {
               onClick={() => setActiveFilter(key)}
               className={`w-full text-left px-4 py-3 rounded-xl border text-sm font-mono transition-all flex justify-between items-center ${
                 activeFilter === key
-                  ? "bg-slate-800 border-slate-600 text-white"
-                  : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                  ? "bg-blue-600 border-blue-600 text-white"
+                  : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900"
               }`}
             >
               <div className="flex items-center gap-2">
                 <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${cfg.dot}`} />
                 <span>{cfg.label}</span>
               </div>
-              <span className="text-xs bg-slate-700/50 px-1.5 py-0.5 rounded">
+              <span className={`text-xs px-1.5 py-0.5 rounded ${activeFilter === key ? "bg-blue-500" : "bg-slate-100"}`}>
                 {counts[key]}
               </span>
             </button>
           ))}
 
           {/* Legend */}
-          <div className="mt-6 pt-4 border-t border-slate-800 space-y-3">
-            <p className="text-[10px] font-mono uppercase tracking-widest text-slate-600">
+          <div className="mt-6 pt-4 border-t border-slate-200 space-y-3">
+            <p className="text-[10px] font-mono uppercase tracking-widest text-slate-400">
               Status Key
             </p>
             {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
               <div key={key} className="flex items-start gap-2">
                 <span className={`w-1.5 h-1.5 rounded-full mt-1 flex-shrink-0 ${cfg.dot}`} />
                 <div>
-                  <p className={`text-xs font-mono font-bold ${cfg.text}`}>
-                    {cfg.label}
-                  </p>
-                  <p className="text-[10px] text-slate-600">{cfg.description}</p>
+                  <p className={`text-xs font-mono font-bold ${cfg.text}`}>{cfg.label}</p>
+                  <p className="text-[10px] text-slate-400">{cfg.description}</p>
                 </div>
               </div>
             ))}
@@ -225,11 +223,9 @@ export default function ProjectsPage() {
         {/* ── Project Cards ── */}
         <div className="flex-grow space-y-4">
           {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center border border-slate-800 rounded-2xl">
-              <p className="text-slate-500 font-mono text-sm">
-                No projects in this category yet.
-              </p>
-              <p className="text-slate-700 text-xs mt-1">Check back soon.</p>
+            <div className="flex flex-col items-center justify-center py-16 text-center border border-slate-200 rounded-2xl bg-white">
+              <p className="text-slate-400 font-mono text-sm">No projects in this category yet.</p>
+              <p className="text-slate-300 text-xs mt-1">Check back soon.</p>
             </div>
           ) : (
             filtered.map((project) => {
@@ -237,9 +233,9 @@ export default function ProjectsPage() {
               return (
                 <div
                   key={project.id}
-                  className="p-6 border border-slate-800 rounded-2xl bg-slate-950 shadow-xl hover:border-slate-700 transition-all space-y-4"
+                  className="p-6 border border-slate-200 rounded-2xl bg-white shadow-sm hover:border-slate-300 hover:shadow-md transition-all space-y-4"
                 >
-                  {/* Top row: tags + date + status badge */}
+                  {/* Top row */}
                   <div className="flex justify-between items-start flex-wrap gap-2">
                     <div className="flex items-center gap-2 flex-wrap">
                       {project.tags.map((tag) => (
@@ -252,12 +248,8 @@ export default function ProjectsPage() {
                       ))}
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0">
-                      <span className="text-xs text-slate-500 font-mono">
-                        {project.date}
-                      </span>
-                      <span
-                        className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border flex items-center gap-1.5 ${cfg.badge} ${cfg.border} ${cfg.text}`}
-                      >
+                      <span className="text-xs text-slate-400 font-mono">{project.date}</span>
+                      <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border flex items-center gap-1.5 ${cfg.badge} ${cfg.border} ${cfg.text}`}>
                         <span className={`w-1 h-1 rounded-full ${cfg.dot}`} />
                         {cfg.label.toUpperCase()}
                       </span>
@@ -266,10 +258,8 @@ export default function ProjectsPage() {
 
                   {/* Title + description */}
                   <div>
-                    <h3 className="font-bold text-xl text-white">{project.title}</h3>
-                    <p className="text-slate-400 text-sm leading-relaxed mt-2">
-                      {project.description}
-                    </p>
+                    <h3 className="font-bold text-xl text-slate-900">{project.title}</h3>
+                    <p className="text-slate-500 text-sm leading-relaxed mt-2">{project.description}</p>
                   </div>
 
                   {/* Highlights */}

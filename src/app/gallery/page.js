@@ -1,16 +1,15 @@
 // ============================================================
 // GALLERY DATA
 // To add a photo:
-//   1. Drop the image into /public/gallery/ (create the folder if needed)
-//   2. Copy an object below and set src to "/gallery/your-filename.jpg"
+//   1. Drop the image into /public/gallery/
+//   2. Set src to "/gallery/your-filename.jpg"
 //   3. Fill in alt, caption, and date
-//
 // Leave src as null to show a placeholder slot.
 // ============================================================
 const GALLERY_ITEMS = [
   {
     id: 1,
-    src: null, // e.g. "/gallery/oscilloscope-debug.jpg"
+    src: null,
     alt: "Oscilloscope diagnostics session",
     caption: "Oscilloscope Diagnostics / Embedded Debugging",
     date: "2024",
@@ -50,7 +49,7 @@ const GALLERY_ITEMS = [
     caption: "Engineering Workshop Session",
     date: "2024",
   },
-  // ── ADD NEW PHOTOS BELOW THIS LINE ───────────────────────
+  // ── ADD NEW PHOTOS BELOW ──────────────────────────────────
   // {
   //   id: 7,
   //   src: "/gallery/your-photo.jpg",
@@ -67,28 +66,20 @@ export default function GalleryPage() {
     <div className="space-y-10">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">Gallery</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">Gallery</h1>
         <p className="text-sm text-slate-500 mt-1">
           Engineering snapshots, team moments, and project milestones
         </p>
-        <div className="h-1 w-12 bg-blue-500 rounded mt-4" />
+        <div className="h-1 w-12 bg-blue-600 rounded mt-4" />
       </div>
 
-      {/* Status banner — shown until photos are added */}
+      {/* How-to banner — shown until photos are added */}
       {!hasPhotos && (
-        <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 text-xs font-mono text-blue-400/70 space-y-1">
-          <p className="font-bold text-blue-400">{"// HOW TO ADD PHOTOS"}</p>
-          <p>
-            1. Create a <span className="text-blue-300">/public/gallery/</span> folder in your project root.
-          </p>
-          <p>
-            2. Drop your images in (e.g.{" "}
-            <span className="text-blue-300">team-photo.jpg</span>).
-          </p>
-          <p>
-            3. Set <span className="text-blue-300">src</span> in the{" "}
-            <span className="text-blue-300">GALLERY_ITEMS</span> array at the top of this file.
-          </p>
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-xs font-mono text-blue-700 space-y-1">
+          <p className="font-bold text-blue-700">{"// HOW TO ADD PHOTOS"}</p>
+          <p>1. Create a <span className="font-bold">/public/gallery/</span> folder in your project root.</p>
+          <p>2. Drop your images in (e.g. <span className="font-bold">team-photo.jpg</span>).</p>
+          <p>3. Set <span className="font-bold">src</span> in the <span className="font-bold">GALLERY_ITEMS</span> array at the top of this file.</p>
         </div>
       )}
 
@@ -97,9 +88,8 @@ export default function GalleryPage() {
         {GALLERY_ITEMS.map((item) => (
           <div
             key={item.id}
-            className="group relative overflow-hidden rounded-xl border border-slate-800 bg-slate-950 hover:border-blue-500/40 transition-all"
+            className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
           >
-            {/* Image or placeholder */}
             {item.src ? (
               <div className="relative aspect-video overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -110,11 +100,11 @@ export default function GalleryPage() {
                 />
               </div>
             ) : (
-              <div className="aspect-video flex flex-col items-center justify-center text-xs font-mono text-slate-600 bg-slate-950 p-4 text-center">
-                <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center mb-3 text-slate-500">
+              <div className="aspect-video flex flex-col items-center justify-center bg-slate-50 p-4 text-center">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center mb-3">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="w-5 h-5"
+                    className="w-5 h-5 text-slate-400"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -127,14 +117,14 @@ export default function GalleryPage() {
                     />
                   </svg>
                 </div>
-                <span className="text-slate-500 text-[11px]">Photo Coming Soon</span>
+                <span className="text-slate-400 text-xs font-mono">Photo Coming Soon</span>
               </div>
             )}
 
             {/* Caption */}
-            <div className="p-3 border-t border-slate-800">
-              <p className="text-xs text-slate-300 font-medium">{item.caption}</p>
-              <p className="text-[10px] text-slate-600 font-mono mt-0.5">{item.date}</p>
+            <div className="p-3 border-t border-slate-100">
+              <p className="text-sm text-slate-700 font-medium">{item.caption}</p>
+              <p className="text-[10px] text-slate-400 font-mono mt-0.5">{item.date}</p>
             </div>
           </div>
         ))}
