@@ -52,10 +52,12 @@ export default function ContactPage() {
       {/* Direct contact links */}
       <div className="flex flex-col gap-3 pt-2">
         <a
-          href="mailto:ristevski.antonio2@gmail.com"
+          href="https://github.com/MANGOJUICE1008"
+          target="_blank"
+          rel="noreferrer"
           className="flex items-center gap-3 px-4 py-3 rounded-xl border border-slate-200 bg-white shadow-sm hover:border-blue-300 hover:text-blue-600 transition-all text-sm font-mono text-slate-600"
         >
-          <span>✉</span> ristevski.antonio2@gmail.com
+          <span>↗</span> github.com/MANGOJUICE1008
         </a>
         <a
           href="http://www.linkedin.com/in/antonio-ristevski-ece"
@@ -64,6 +66,12 @@ export default function ContactPage() {
           className="flex items-center gap-3 px-4 py-3 rounded-xl border border-slate-200 bg-white shadow-sm hover:border-blue-300 hover:text-blue-600 transition-all text-sm font-mono text-slate-600"
         >
           <span>↗</span> linkedin.com/in/antonio-ristevski-ece
+        </a>
+        <a
+          href="mailto:ristevski.antonio2@gmail.com"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl border border-slate-200 bg-white shadow-sm hover:border-blue-300 hover:text-blue-600 transition-all text-sm font-mono text-slate-600"
+        >
+          <span>✉</span> ristevski.antonio2@gmail.com
         </a>
       </div>
     </div>
