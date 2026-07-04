@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "node scripts/convert-heic.mjs",
-    "prebuild": "node scripts/convert-heic.mjs",
+    "predev": "node scripts/convert-heic.mjs && node scripts/generate-manifest.mjs && node scripts/generate-newsletters-manifest.mjs",
+    "prebuild": "node scripts/convert-heic.mjs && node scripts/generate-manifest.mjs && node scripts/generate-newsletters-manifest.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
