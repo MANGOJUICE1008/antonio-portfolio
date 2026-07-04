@@ -1,23 +1,15 @@
-import Image from "next/image";
 import manifest from "./manifest.json";
+import GalleryGrid from "./GalleryGrid";
 
 // ============================================================
-// GALLERY — fully automatic, masonry layout
+// GALLERY — fully automatic, masonry layout, click-to-enlarge
 // Just drop .png, .jpg, or .heic files into /public/gallery/.
 // The filename (minus the extension) becomes the caption.
-//   e.g. oscilloscope-diagnostics-session.jpg -> "Oscilloscope Diagnostics Session"
 //
-// This page does NOT read the filesystem itself — that's on purpose.
-// scripts/convert-heic.mjs runs before every `next dev` / `next build`,
-// converts any HEIC files to JPG, downscales oversized photos, and writes
-// manifest.json with the final list of photos + captions + real
-// width/height. This page just imports that JSON. Keeping filesystem
-// access out of the page avoids Vercel bundling the whole photo folder
-// into the deployed function.
-//
-// Layout: CSS multi-column masonry. Each image keeps its true aspect
-// ratio (via the width/height from the manifest), so nothing is cropped —
-// portrait shots stay tall, landscape shots stay wide.
+// This page stays a plain server component (no "use client", no runtime
+// fs access) — it just imports the pre-built manifest.json and hands the
+// data to <GalleryGrid>, which is where all the click/lightbox
+// interactivity lives.
 // ============================================================
 
 export default function GalleryPage() {
@@ -45,33 +37,7 @@ export default function GalleryPage() {
         </div>
       )}
 
-      {/* Masonry grid */}
-      <div className="columns-1 sm:columns-2 md:columns-3 gap-4">
-        {GALLERY_ITEMS.map((item, index) => (
-          <div
-            key={item.id}
-            className="mb-4 break-inside-avoid overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm hover:border-blue-300 hover:shadow-md transition-all group"
-          >
-            <Image
-              src={item.src}
-              alt={item.alt}
-              width={item.width}
-              height={item.height}
-              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
-              className="w-full h-auto group-hover:scale-105 transition-transform duration-500"
-              // First few images load eagerly so the top of the grid
-              // doesn't visibly pop in; the rest lazy-load as you scroll.
-              priority={index < 3}
-            />
-
-            {/* Caption */}
-            <div className="p-3 border-t border-slate-100">
-              <p className="text-sm text-slate-700 font-medium">{item.caption}</p>
-              <p className="text-[10px] text-slate-400 font-mono mt-0.5">{item.date}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+      <GalleryGrid items={GALLERY_ITEMS} />
     </div>
   );
 }
