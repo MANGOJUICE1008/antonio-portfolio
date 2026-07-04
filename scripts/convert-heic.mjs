@@ -1,11 +1,11 @@
 // 1. Converts any .heic files in public/gallery/ to .jpg (most browsers can't
 //    display raw HEIC).
 // 2. Downscales any image wider than MAX_WIDTH and re-compresses it — phone
-//    photos are often 3000-4000px wide; the gallery grid only ever displays
-//    them at a few hundred px, so shipping the full original just adds load
-//    time for no visible benefit.
-// 3. Writes a JSON manifest of every image + its derived caption to
-//    src/app/gallery/manifest.json.
+//    photos are often 3000-4000px wide; no need to ship that much detail.
+// 3. Writes a JSON manifest of every image + its derived caption + its
+//    actual width/height to src/app/gallery/manifest.json. The width/height
+//    are what let the masonry grid on the page reserve the correct space
+//    for each photo (in its real aspect ratio) without layout shift.
 //
 // Runs automatically before `next dev` and `next build` (see package.json).
 //
@@ -13,7 +13,7 @@
 // lossy, permanent resize — keep a backup of your originals elsewhere if you
 // want to preserve full resolution copies.
 
-import { readdir, readFile, writeFile, unlink, stat, mkdir } from "fs/promises";
+import { readdir, readFile, writeFile, unlink, mkdir, stat } from "fs/promises";
 import path from "path";
 import convert from "heic-convert";
 import sharp from "sharp";
@@ -99,16 +99,39 @@ async function buildManifest() {
     const ext = path.extname(file).toLowerCase();
     if (!ALLOWED_EXTENSIONS.includes(ext)) continue;
 
+    const filePath = path.join(GALLERY_DIR, file);
     const base = path.basename(file, path.extname(file));
-    const stats = await stat(path.join(GALLERY_DIR, file));
+
+    let width = 1600;
+    let height = 900;
+    let mtimeMs = Date.now();
+
+    try {
+      const metadata = await sharp(filePath).metadata();
+      if (metadata.width && metadata.height) {
+        width = metadata.width;
+        height = metadata.height;
+      }
+    } catch (err) {
+      console.error(`[gallery] Could not read dimensions for ${file}:`, err.message);
+    }
+
+    try {
+      const stats = await stat(filePath);
+      mtimeMs = stats.mtime.getTime();
+    } catch {
+      // fall back to Date.now() already set above
+    }
 
     items.push({
       id: file,
       src: `/gallery/${file}`,
       alt: toTitleCase(base),
       caption: toTitleCase(base),
-      date: stats.mtime.getFullYear().toString(),
-      mtimeMs: stats.mtime.getTime(),
+      date: new Date(mtimeMs).getFullYear().toString(),
+      width,
+      height,
+      mtimeMs,
     });
   }
 

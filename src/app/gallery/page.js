@@ -2,7 +2,7 @@ import Image from "next/image";
 import manifest from "./manifest.json";
 
 // ============================================================
-// GALLERY — fully automatic
+// GALLERY — fully automatic, masonry layout
 // Just drop .png, .jpg, or .heic files into /public/gallery/.
 // The filename (minus the extension) becomes the caption.
 //   e.g. oscilloscope-diagnostics-session.jpg -> "Oscilloscope Diagnostics Session"
@@ -10,9 +10,14 @@ import manifest from "./manifest.json";
 // This page does NOT read the filesystem itself — that's on purpose.
 // scripts/convert-heic.mjs runs before every `next dev` / `next build`,
 // converts any HEIC files to JPG, downscales oversized photos, and writes
-// manifest.json with the final list of photos + captions. This page just
-// imports that JSON and lets next/image handle lazy loading, responsive
-// sizing, and format optimization (WebP/AVIF) per visitor's device.
+// manifest.json with the final list of photos + captions + real
+// width/height. This page just imports that JSON. Keeping filesystem
+// access out of the page avoids Vercel bundling the whole photo folder
+// into the deployed function.
+//
+// Layout: CSS multi-column masonry. Each image keeps its true aspect
+// ratio (via the width/height from the manifest), so nothing is cropped —
+// portrait shots stay tall, landscape shots stay wide.
 // ============================================================
 
 export default function GalleryPage() {
@@ -40,25 +45,24 @@ export default function GalleryPage() {
         </div>
       )}
 
-      {/* Grid */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+      {/* Masonry grid */}
+      <div className="columns-1 sm:columns-2 md:columns-3 gap-4">
         {GALLERY_ITEMS.map((item, index) => (
           <div
             key={item.id}
-            className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
+            className="mb-4 break-inside-avoid overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm hover:border-blue-300 hover:shadow-md transition-all group"
           >
-            <div className="relative aspect-video overflow-hidden bg-slate-100">
-              <Image
-                src={item.src}
-                alt={item.alt}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
-                className="object-cover group-hover:scale-105 transition-transform duration-500"
-                // First few images load eagerly so the top of the grid
-                // doesn't visibly pop in; the rest lazy-load as you scroll.
-                priority={index < 3}
-              />
-            </div>
+            <Image
+              src={item.src}
+              alt={item.alt}
+              width={item.width}
+              height={item.height}
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+              className="w-full h-auto group-hover:scale-105 transition-transform duration-500"
+              // First few images load eagerly so the top of the grid
+              // doesn't visibly pop in; the rest lazy-load as you scroll.
+              priority={index < 3}
+            />
 
             {/* Caption */}
             <div className="p-3 border-t border-slate-100">
