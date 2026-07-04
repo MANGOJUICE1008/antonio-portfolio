@@ -1,25 +1,27 @@
 // 1. Converts any .heic files in public/gallery/ to .jpg (most browsers can't
 //    display raw HEIC).
-// 2. Writes a JSON manifest of every image + its derived caption to
+// 2. Downscales any image wider than MAX_WIDTH and re-compresses it — phone
+//    photos are often 3000-4000px wide; the gallery grid only ever displays
+//    them at a few hundred px, so shipping the full original just adds load
+//    time for no visible benefit.
+// 3. Writes a JSON manifest of every image + its derived caption to
 //    src/app/gallery/manifest.json.
 //
-// Why a manifest instead of reading the folder from the page itself:
-// if a Server Component calls fs.readdirSync on public/gallery directly,
-// Vercel's build tracer bundles the ENTIRE folder (every photo, full size)
-// into the serverless function, which can blow past Vercel's function size
-// limit. Reading the folder here, at build time, and writing a tiny JSON
-// file means the deployed page has zero runtime fs dependency — Vercel can
-// serve it as a plain static page and the photos as normal static assets.
-//
 // Runs automatically before `next dev` and `next build` (see package.json).
+//
+// NOTE: step 2 overwrites the file in public/gallery in place. This is a
+// lossy, permanent resize — keep a backup of your originals elsewhere if you
+// want to preserve full resolution copies.
 
 import { readdir, readFile, writeFile, unlink, stat, mkdir } from "fs/promises";
 import path from "path";
 import convert from "heic-convert";
+import sharp from "sharp";
 
 const GALLERY_DIR = path.join(process.cwd(), "public", "gallery");
 const MANIFEST_PATH = path.join(process.cwd(), "src", "app", "gallery", "manifest.json");
 const ALLOWED_EXTENSIONS = [".png", ".jpg", ".jpeg"];
+const MAX_WIDTH = 1600; // px — generous for a grid cell, even on retina displays
 
 function toTitleCase(str) {
   return str
@@ -53,6 +55,33 @@ async function convertHeicFiles(files) {
       console.log(`[gallery] Converted ${file} -> ${path.basename(outputPath)}`);
     } catch (err) {
       console.error(`[gallery] Failed to convert ${file}:`, err.message);
+    }
+  }
+}
+
+async function optimizeImages(files) {
+  const targets = files.filter((f) => /\.(jpe?g|png)$/i.test(f));
+
+  for (const file of targets) {
+    const filePath = path.join(GALLERY_DIR, file);
+    const ext = path.extname(file).toLowerCase();
+
+    try {
+      const image = sharp(filePath);
+      const metadata = await image.metadata();
+
+      if (!metadata.width || metadata.width <= MAX_WIDTH) {
+        continue; // already small enough, leave it alone
+      }
+
+      let pipeline = image.resize({ width: MAX_WIDTH, withoutEnlargement: true });
+      pipeline = ext === ".png" ? pipeline.png({ quality: 82 }) : pipeline.jpeg({ quality: 82 });
+
+      const buffer = await pipeline.toBuffer();
+      await writeFile(filePath, buffer);
+      console.log(`[gallery] Resized ${file} (was ${metadata.width}px wide -> ${MAX_WIDTH}px)`);
+    } catch (err) {
+      console.error(`[gallery] Failed to optimize ${file}:`, err.message);
     }
   }
 }
@@ -96,9 +125,15 @@ async function run() {
     files = await readdir(GALLERY_DIR);
   } catch {
     console.log("[gallery] public/gallery not found yet.");
+    await buildManifest();
+    return;
   }
 
   await convertHeicFiles(files);
+
+  // Re-read the folder — filenames changed (.heic -> .jpg) during conversion.
+  const updatedFiles = await readdir(GALLERY_DIR);
+  await optimizeImages(updatedFiles);
   await buildManifest();
 }
 

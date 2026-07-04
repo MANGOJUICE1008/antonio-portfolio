@@ -1,3 +1,4 @@
+import Image from "next/image";
 import manifest from "./manifest.json";
 
 // ============================================================
@@ -8,10 +9,10 @@ import manifest from "./manifest.json";
 //
 // This page does NOT read the filesystem itself — that's on purpose.
 // scripts/convert-heic.mjs runs before every `next dev` / `next build`,
-// converts any HEIC files to JPG, and writes manifest.json with the final
-// list of photos + captions. This page just imports that JSON. Keeping
-// filesystem access out of the page avoids Vercel bundling the whole
-// photo folder into the deployed function.
+// converts any HEIC files to JPG, downscales oversized photos, and writes
+// manifest.json with the final list of photos + captions. This page just
+// imports that JSON and lets next/image handle lazy loading, responsive
+// sizing, and format optimization (WebP/AVIF) per visitor's device.
 // ============================================================
 
 export default function GalleryPage() {
@@ -41,17 +42,21 @@ export default function GalleryPage() {
 
       {/* Grid */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
-        {GALLERY_ITEMS.map((item) => (
+        {GALLERY_ITEMS.map((item, index) => (
           <div
             key={item.id}
             className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
           >
-            <div className="relative aspect-video overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+            <div className="relative aspect-video overflow-hidden bg-slate-100">
+              <Image
                 src={item.src}
                 alt={item.alt}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                // First few images load eagerly so the top of the grid
+                // doesn't visibly pop in; the rest lazy-load as you scroll.
+                priority={index < 3}
               />
             </div>
 
