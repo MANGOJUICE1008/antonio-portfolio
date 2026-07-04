@@ -1,54 +1,21 @@
-import fs from "fs";
-import path from "path";
+import manifest from "./manifest.json";
 
 // ============================================================
 // GALLERY — fully automatic
 // Just drop .png, .jpg, or .heic files into /public/gallery/.
 // The filename (minus the extension) becomes the caption.
 //   e.g. oscilloscope-diagnostics-session.jpg -> "Oscilloscope Diagnostics Session"
-// HEIC files are auto-converted to JPG by scripts/convert-heic.mjs,
-// which runs automatically before `npm run dev` / `npm run build`.
+//
+// This page does NOT read the filesystem itself — that's on purpose.
+// scripts/convert-heic.mjs runs before every `next dev` / `next build`,
+// converts any HEIC files to JPG, and writes manifest.json with the final
+// list of photos + captions. This page just imports that JSON. Keeping
+// filesystem access out of the page avoids Vercel bundling the whole
+// photo folder into the deployed function.
 // ============================================================
 
-const GALLERY_DIR = path.join(process.cwd(), "public", "gallery");
-const ALLOWED_EXTENSIONS = [".png", ".jpg", ".jpeg", ".heic"];
-
-function toTitleCase(str) {
-  return str
-    .replace(/[-_]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/\w\S*/g, (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
-}
-
-function getGalleryItems() {
-  let files;
-  try {
-    files = fs.readdirSync(GALLERY_DIR);
-  } catch {
-    return [];
-  }
-
-  return files
-    .filter((file) => ALLOWED_EXTENSIONS.includes(path.extname(file).toLowerCase()))
-    .map((file) => {
-      const ext = path.extname(file);
-      const base = path.basename(file, ext);
-      const stats = fs.statSync(path.join(GALLERY_DIR, file));
-      return {
-        id: file,
-        src: `/gallery/${file}`,
-        alt: toTitleCase(base),
-        caption: toTitleCase(base),
-        date: stats.mtime.getFullYear().toString(),
-        mtimeMs: stats.mtime.getTime(),
-      };
-    })
-    .sort((a, b) => b.mtimeMs - a.mtimeMs); // newest first
-}
-
 export default function GalleryPage() {
-  const GALLERY_ITEMS = getGalleryItems();
+  const GALLERY_ITEMS = manifest;
   const hasPhotos = GALLERY_ITEMS.length > 0;
 
   return (
