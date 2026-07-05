@@ -1,4 +1,76 @@
+"use client";
+
+import { useState } from "react";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validate(fields) {
+  const errors = {};
+
+  if (!fields.name.trim()) {
+    errors.name = "Please enter your name.";
+  }
+
+  if (!fields.email.trim()) {
+    errors.email = "Please enter your email.";
+  } else if (!EMAIL_REGEX.test(fields.email.trim())) {
+    errors.email = "Please enter a valid email address.";
+  }
+
+  if (!fields.message.trim()) {
+    errors.message = "Please enter a message.";
+  }
+
+  return errors;
+}
+
 export default function ContactPage() {
+  const [fields, setFields] = useState({ name: "", email: "", message: "" });
+  const [errors, setErrors] = useState({});
+  const [status, setStatus] = useState("idle"); // idle | submitting | success | error
+  const [statusMessage, setStatusMessage] = useState("");
+
+  function handleChange(e) {
+    const { name, value } = e.target;
+    setFields((prev) => ({ ...prev, [name]: value }));
+    // Clear a field's error as soon as the user starts fixing it.
+    setErrors((prev) => (prev[name] ? { ...prev, [name]: undefined } : prev));
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    const validationErrors = validate(fields);
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+
+    setStatus("submitting");
+    setStatusMessage("");
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(fields),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data.error || "Something went wrong. Please try again.");
+      }
+
+      setStatus("success");
+      setStatusMessage("Thanks for reaching out — I'll get back to you soon.");
+      setFields({ name: "", email: "", message: "" });
+    } catch (err) {
+      setStatus("error");
+      setStatusMessage(err.message || "Something went wrong. Please try again later.");
+    }
+  }
+
   return (
     <div className="max-w-xl mx-auto space-y-8">
       <div>
@@ -7,46 +79,111 @@ export default function ContactPage() {
         <div className="h-1 w-12 bg-blue-600 rounded mt-4" />
       </div>
 
-      <form className="space-y-5 bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
+      <form
+        className="space-y-5 bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm"
+        onSubmit={handleSubmit}
+        noValidate
+      >
         <div>
-          <label className="block text-xs font-mono uppercase tracking-wider text-slate-500 mb-2 font-semibold">
+          <label
+            htmlFor="name"
+            className="block text-xs font-mono uppercase tracking-wider text-slate-500 mb-2 font-semibold"
+          >
             Full Name
           </label>
           <input
+            id="name"
+            name="name"
             type="text"
-            className="w-full p-3 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            value={fields.name}
+            onChange={handleChange}
+            aria-invalid={!!errors.name}
+            aria-describedby={errors.name ? "name-error" : undefined}
+            className={`w-full p-3 rounded-xl border bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+              errors.name ? "border-red-400" : "border-slate-300"
+            }`}
             placeholder="John Doe"
           />
+          {errors.name && (
+            <p id="name-error" className="mt-1.5 text-xs text-red-600" role="alert">
+              {errors.name}
+            </p>
+          )}
         </div>
 
         <div>
-          <label className="block text-xs font-mono uppercase tracking-wider text-slate-500 mb-2 font-semibold">
+          <label
+            htmlFor="email"
+            className="block text-xs font-mono uppercase tracking-wider text-slate-500 mb-2 font-semibold"
+          >
             Email
           </label>
           <input
+            id="email"
+            name="email"
             type="email"
-            className="w-full p-3 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            value={fields.email}
+            onChange={handleChange}
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? "email-error" : undefined}
+            className={`w-full p-3 rounded-xl border bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+              errors.email ? "border-red-400" : "border-slate-300"
+            }`}
             placeholder="johndoe@gmail.com"
           />
+          {errors.email && (
+            <p id="email-error" className="mt-1.5 text-xs text-red-600" role="alert">
+              {errors.email}
+            </p>
+          )}
         </div>
 
         <div>
-          <label className="block text-xs font-mono uppercase tracking-wider text-slate-500 mb-2 font-semibold">
+          <label
+            htmlFor="message"
+            className="block text-xs font-mono uppercase tracking-wider text-slate-500 mb-2 font-semibold"
+          >
             Message
           </label>
           <textarea
+            id="message"
+            name="message"
             rows="4"
-            className="w-full p-3 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            value={fields.message}
+            onChange={handleChange}
+            aria-invalid={!!errors.message}
+            aria-describedby={errors.message ? "message-error" : undefined}
+            className={`w-full p-3 rounded-xl border bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+              errors.message ? "border-red-400" : "border-slate-300"
+            }`}
             placeholder="Tell me about your project..."
           />
+          {errors.message && (
+            <p id="message-error" className="mt-1.5 text-xs text-red-600" role="alert">
+              {errors.message}
+            </p>
+          )}
         </div>
 
         <button
-          type="button"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold p-3.5 rounded-xl shadow-sm transition-all"
+          type="submit"
+          disabled={status === "submitting"}
+          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-bold p-3.5 rounded-xl shadow-sm transition-all"
         >
-          Send Message
+          {status === "submitting" ? "Sending…" : "Send Message"}
         </button>
+
+        {statusMessage && (
+          <p
+            role="status"
+            aria-live="polite"
+            className={`text-sm text-center font-mono ${
+              status === "success" ? "text-green-600" : "text-red-600"
+            }`}
+          >
+            {statusMessage}
+          </p>
+        )}
       </form>
 
       {/* Direct contact links */}

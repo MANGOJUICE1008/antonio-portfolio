@@ -117,7 +117,7 @@ export default function NewsletterPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">Newsletter</h1>
         <p className="text-sm text-slate-500 mt-1">
-          Engineering insights, project updates, and highlights
+          Engineering insights, project updates, and other highlights
         </p>
         <div className="h-1 w-12 bg-blue-600 rounded mt-4" />
       </div>
