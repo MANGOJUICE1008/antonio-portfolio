@@ -129,24 +129,35 @@ export default function GalleryGrid({ items }) {
           </div>
 
           <div>
-            <label
-              htmlFor="gallery-per-page"
+            <span
+              id="gallery-per-page-label"
               className="block text-xs font-mono uppercase tracking-wider text-slate-500 mb-1.5 font-semibold"
             >
               Per Page
-            </label>
-            <select
-              id="gallery-per-page"
-              value={itemsPerPage}
-              onChange={(e) => setItemsPerPage(Number(e.target.value))}
-              className="text-sm p-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            </span>
+            <div
+              role="group"
+              aria-labelledby="gallery-per-page-label"
+              className="inline-flex rounded-xl border border-slate-300 overflow-hidden"
             >
-              {PAGE_SIZE_OPTIONS.map((size) => (
-                <option key={size} value={size}>
+              {PAGE_SIZE_OPTIONS.map((size, index) => (
+                <button
+                  key={size}
+                  type="button"
+                  onClick={() => setItemsPerPage(size)}
+                  aria-pressed={itemsPerPage === size}
+                  className={`px-4 py-2.5 text-sm font-mono transition-all ${
+                    index > 0 ? "border-l border-slate-300" : ""
+                  } ${
+                    itemsPerPage === size
+                      ? "bg-blue-600 text-white"
+                      : "bg-white text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
                   {size}
-                </option>
+                </button>
               ))}
-            </select>
+            </div>
           </div>
         </div>
 
