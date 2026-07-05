@@ -122,7 +122,7 @@ export default function NewsletterPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">Newsletter</h1>
         <p className="text-sm text-slate-500 mt-1">
-          Engineering insights, project updates, and technical deep-dives
+          Engineering insights, project updates, and highlights
         </p>
         <div className="h-1 w-12 bg-blue-600 rounded mt-4" />
       </div>
@@ -131,7 +131,6 @@ export default function NewsletterPage() {
       <section className="space-y-4">
         <div>
           <h2 className="text-xl font-bold text-slate-900 tracking-tight">Latest Issue</h2>
-          <p className="text-sm text-slate-500 mt-1">The most recent newsletter, front and center</p>
         </div>
 
         {!latest ? (

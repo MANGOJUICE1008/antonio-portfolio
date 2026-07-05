@@ -32,7 +32,7 @@ export default function GalleryPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">Gallery</h1>
         <p className="text-sm text-slate-500 mt-1">
-          Engineering snapshots, team moments, and project milestones
+          Engineering snapshots, team moments, project milestones, and other highlights
         </p>
         <div className="h-1 w-12 bg-blue-600 rounded mt-4" />
       </div>

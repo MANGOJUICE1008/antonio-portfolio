@@ -121,7 +121,7 @@ async function main() {
       caption,
       date: matched
         ? parsedDate.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
-        : "Unsorted — rename to mm-dd-yy,Description",
+        : String(new Date(stat.mtimeMs).getFullYear()),
       mtimeMs: stat.mtimeMs,
       width,
       height,
