@@ -6,24 +6,37 @@ export default function HomePage() {
 
       {/* Hero */}
       <section className="py-6">
-        {/* col-reverse on mobile puts the photo above the text (it's second
-            in the DOM, so screen readers still hit the name/description
-            first); md:flex-row lays them out side by side on desktop with
-            the photo on the right. */}
-        <div className="flex flex-col-reverse md:flex-row md:items-center gap-8">
+        {/* Photo comes first in the DOM and in reading order — stacks above
+            the text on mobile (flex-col), sits to its left on desktop
+            (md:flex-row). */}
+        <div className="flex flex-col md:flex-row md:items-center gap-8">
+          {/* Photo — drop a file at public/profile.jpg (or update the src
+              below to match whatever you name it) */}
+          <div className="flex-shrink-0 mx-auto md:mx-0">
+            <div className="relative w-56 h-56 md:w-80 md:h-80 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm">
+              <Image
+                src="/profile.jpg"
+                alt="Antonio Ristevski"
+                fill
+                sizes="(min-width: 768px) 320px, 224px"
+                className="object-cover"
+                priority
+              />
+            </div>
+          </div>
+
           <div className="flex-grow space-y-4">
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-slate-900">
-              Hi, I'm{" "}
-              <span className="text-blue-600">Antonio Ristevski</span>
+              Antonio Ristevski
             </h1>
             <p className="text-xl md:text-2xl text-slate-500 max-w-3xl leading-relaxed">
               Computer & Electrical Engineer specializing in controls, PCB development, and embedded systems.
             </p>
 
-            {/* Employment status — TODO: replace with your real role/employer */}
+            {/* Employment status */}
             <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-slate-500 bg-slate-100 border border-slate-200 rounded-full px-3 py-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
-              Currently @ [Company Name] — [Your Role]
+              Currently @ KUKA Robotics — Controls Project Engineer
             </div>
 
             <div className="flex flex-wrap gap-3 pt-2">
@@ -41,21 +54,6 @@ export default function HomePage() {
               >
                 View My Resume
               </a>
-            </div>
-          </div>
-
-          {/* Photo — drop a file at public/profile.jpg (or update the src
-              below to match whatever you name it) */}
-          <div className="flex-shrink-0 mx-auto md:mx-0">
-            <div className="relative w-40 h-40 md:w-56 md:h-56 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm">
-              <Image
-                src="/profile.jpg"
-                alt="Antonio Ristevski"
-                fill
-                sizes="(min-width: 768px) 224px, 160px"
-                className="object-cover"
-                priority
-              />
             </div>
           </div>
         </div>
