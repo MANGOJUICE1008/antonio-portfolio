@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50];
@@ -74,12 +74,26 @@ export default function GalleryGrid({ items }) {
 
   function goToPage(page) {
     setCurrentPage(Math.min(Math.max(1, page), totalPages));
-    scrollToTop();
   }
 
   function scrollToTop() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+
+  // Scroll to top whenever the page number changes (but not on first mount).
+  // Waiting for the effect — rather than scrolling inside the click handler —
+  // means this runs after React has actually swapped in the new page's items,
+  // so it isn't fighting a layout shift from a page with a different photo
+  // count (e.g. a shorter final page) or from images still loading in.
+  const hasMountedRef = useRef(false);
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+    const frame = requestAnimationFrame(scrollToTop);
+    return () => cancelAnimationFrame(frame);
+  }, [currentPage]);
 
   if (items.length === 0) {
     return null;
