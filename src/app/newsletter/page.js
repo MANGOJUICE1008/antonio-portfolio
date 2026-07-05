@@ -161,8 +161,8 @@ export default function NewsletterPage() {
                 className="w-full h-[70vh] sm:h-[80vh]"
               />
 
-              {/* Inspect / Download — bottom-right corner, same as image controls would sit */}
-              <div className="absolute bottom-4 right-4 flex items-center gap-2">
+              {/* Inspect / Download — top-right corner, clear of the Prev/Next bar below */}
+              <div className="absolute top-4 right-4 flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setViewing(latest)}
@@ -318,13 +318,13 @@ export default function NewsletterPage() {
               <h3 className="font-bold text-slate-900 truncate">{viewing.title}</h3>
             </div>
 
-            <div className="relative flex-grow bg-slate-50">
+            <div className="relative flex-grow min-h-0 bg-slate-50">
               <PdfViewer
                 pdfPath={viewing.pdfPath}
                 title={viewing.title}
                 className="w-full h-full"
               />
-              <div className="absolute bottom-4 right-4 flex items-center gap-2">
+              <div className="absolute top-4 right-4 flex items-center gap-2">
                 <a
                   href={viewing.pdfPath}
                   download
