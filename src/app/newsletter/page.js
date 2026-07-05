@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import manifest from "./manifest.json";
+import PdfViewer from "./PdfViewer";
 
 // ============================================================
 // NEWSLETTER ARCHIVE — fully automatic, sorted newest-first.
@@ -54,15 +55,9 @@ const ICONS = {
   ),
 };
 
-// Strips the native PDF viewer's toolbar/print/download chrome so the
-// embed blends into the page instead of looking like a separate app, and
-// fits each page to the width of the viewer instead of opening at a zoom
-// level that only shows a narrow sliver of the page.
-// (Respected by Chrome/Firefox/Edge; Safari mostly ignores it, which is
-// why we still offer our own "open in new tab" icon as a fallback.)
-function cleanEmbedSrc(pdfPath) {
-  return `${pdfPath}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
-}
+// PdfViewer renders each page as a canvas via PDF.js, so the preview looks
+// the same on mobile Safari/Chrome as it does on desktop instead of relying
+// on the browser's native (and mobile-unreliable) PDF plugin.
 
 export default function NewsletterPage() {
   const [email, setEmail] = useState("");
@@ -160,10 +155,10 @@ export default function NewsletterPage() {
             </div>
 
             <div className="relative bg-slate-50">
-              <iframe
-                src={cleanEmbedSrc(latest.pdfPath)}
+              <PdfViewer
+                pdfPath={latest.pdfPath}
                 title={latest.title}
-                className="w-full h-[70vh] sm:h-[80vh] border-0 block"
+                className="w-full h-[70vh] sm:h-[80vh]"
               />
 
               {/* Inspect / Download — bottom-right corner, same as image controls would sit */}
@@ -324,10 +319,10 @@ export default function NewsletterPage() {
             </div>
 
             <div className="relative flex-grow bg-slate-50">
-              <iframe
-                src={cleanEmbedSrc(viewing.pdfPath)}
+              <PdfViewer
+                pdfPath={viewing.pdfPath}
                 title={viewing.title}
-                className="w-full h-full border-0 block"
+                className="w-full h-full"
               />
               <div className="absolute bottom-4 right-4 flex items-center gap-2">
                 <a
