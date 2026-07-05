@@ -3,14 +3,17 @@
 //
 // Scans /public/gallery and rebuilds src/app/gallery/manifest.json.
 //
-// NAMING CONVENTION for automatic chronological sorting:
-//   mm-dd-yy,Image Description.ext
-//   e.g. "02-14-26,Snow day at the shop.jpg"  ->  sorts as Feb 14, 2026
+// NAMING CONVENTION for automatic chronological sorting + categorization:
+//   mm,dd,yy,Category, Image Description.ext
+//   e.g. "02,14,26,Vacation, Snow day at the shop.jpg"
+//     -> sorts as Feb 14, 2026, category "Vacation",
+//        caption "Snow Day At The Shop"
 //
 // Files that don't match that exact pattern are still included in the
 // gallery (nothing gets dropped) — they're just pushed to the very
 // bottom, after every correctly-named photo, sorted by file-modified
-// time as a tiebreaker, so they're easy to spot and rename.
+// time as a tiebreaker, and filed under the "Uncategorized" category,
+// so they're easy to spot and rename.
 //
 // Usage:
 //   node scripts/generate-manifest.mjs
@@ -33,7 +36,10 @@ const MANIFEST_PATH = path.resolve("src/app/gallery/manifest.json");
 // (see scripts/convert-heic.mjs) so both the browser and sharp can read it.
 const VALID_EXT = new Set([".jpg", ".jpeg", ".png"]);
 
-const DATE_PATTERN = /^(\d{2})-(\d{2})-(\d{2}),\s*(.+)$/;
+const UNCATEGORIZED = "Uncategorized";
+
+// mm,dd,yy,Category, Description
+const DATE_PATTERN = /^(\d{2}),(\d{2}),(\d{2}),\s*([^,]+),\s*(.+)$/;
 
 function humanize(name) {
   return name
@@ -46,10 +52,10 @@ function humanize(name) {
 function parseFilename(baseName) {
   const match = baseName.match(DATE_PATTERN);
   if (!match) {
-    return { matched: false, caption: humanize(baseName) };
+    return { matched: false, category: UNCATEGORIZED, caption: humanize(baseName) };
   }
 
-  const [, mm, dd, yy, description] = match;
+  const [, mm, dd, yy, category, description] = match;
   const month = Number(mm);
   const day = Number(dd);
   const year = 2000 + Number(yy);
@@ -61,14 +67,15 @@ function parseFilename(baseName) {
     parsedDate.getDate() === day;
 
   if (!isValidCalendarDate) {
-    // Looks like the pattern but isn't a real date (e.g. "13-40-25,...") —
+    // Looks like the pattern but isn't a real date (e.g. "13,40,25,...") —
     // treat it as unmatched rather than silently mis-sorting it.
-    return { matched: false, caption: humanize(baseName) };
+    return { matched: false, category: UNCATEGORIZED, caption: humanize(baseName) };
   }
 
   return {
     matched: true,
     parsedDate,
+    category: humanize(category),
     caption: humanize(description),
   };
 }
@@ -95,7 +102,7 @@ async function main() {
     const ext = path.extname(filename);
     const baseName = filename.slice(0, -ext.length);
 
-    const { matched, parsedDate, caption } = parseFilename(baseName);
+    const { matched, parsedDate, category, caption } = parseFilename(baseName);
 
     let width = 1200;
     let height = 800;
@@ -119,6 +126,7 @@ async function main() {
       src: `/gallery/${filename}`,
       alt: caption,
       caption,
+      category,
       date: matched
         ? parsedDate.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
         : String(new Date(stat.mtimeMs).getFullYear()),
@@ -146,7 +154,7 @@ async function main() {
   console.log(`Wrote ${manifest.length} entries to ${path.relative(process.cwd(), MANIFEST_PATH)}`);
   if (unmatchedCount > 0) {
     console.log(
-      `${unmatchedCount} file(s) don't match "mm-dd-yy,Description" and were pushed to the bottom of the gallery.`
+      `${unmatchedCount} file(s) don't match "mm,dd,yy,Category,Description" and were filed under "${UNCATEGORIZED}" at the bottom of the gallery.`
     );
   }
 }

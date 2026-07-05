@@ -1,19 +1,57 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+
+const PAGE_SIZE_OPTIONS = [10, 25, 50];
+const UNCATEGORIZED = "Uncategorized";
 
 export default function GalleryGrid({ items }) {
   const [selectedIndex, setSelectedIndex] = useState(null);
-  const selected = selectedIndex !== null ? items[selectedIndex] : null;
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [itemsPerPage, setItemsPerPage] = useState(25);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Unique categories present in the manifest, alphabetized, with "All" pinned first.
+  const categories = useMemo(() => {
+    const unique = new Set(items.map((item) => item.category || UNCATEGORIZED));
+    return ["All", ...Array.from(unique).sort((a, b) => a.localeCompare(b))];
+  }, [items]);
+
+  const filteredItems = useMemo(() => {
+    if (selectedCategory === "All") return items;
+    return items.filter((item) => (item.category || UNCATEGORIZED) === selectedCategory);
+  }, [items, selectedCategory]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / itemsPerPage));
+
+  // Whenever the filter or page size changes, the current page number may no
+  // longer make sense — snap back to page 1 rather than showing a blank page.
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, itemsPerPage]);
+
+  // Close the lightbox whenever the visible set of photos changes underneath
+  // it (new page, new filter) so it never shows a stale index into a
+  // different array.
+  useEffect(() => {
+    setSelectedIndex(null);
+  }, [currentPage, selectedCategory, itemsPerPage]);
+
+  const pageItems = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredItems.slice(start, start + itemsPerPage);
+  }, [filteredItems, currentPage, itemsPerPage]);
+
+  const selected = selectedIndex !== null ? pageItems[selectedIndex] : null;
 
   const showPrev = useCallback(() => {
-    setSelectedIndex((i) => (i === null ? null : (i - 1 + items.length) % items.length));
-  }, [items.length]);
+    setSelectedIndex((i) => (i === null ? null : (i - 1 + pageItems.length) % pageItems.length));
+  }, [pageItems.length]);
 
   const showNext = useCallback(() => {
-    setSelectedIndex((i) => (i === null ? null : (i + 1) % items.length));
-  }, [items.length]);
+    setSelectedIndex((i) => (i === null ? null : (i + 1) % pageItems.length));
+  }, [pageItems.length]);
 
   // Close on Escape, jump photos on ←/→, and stop the page from scrolling behind the overlay.
   useEffect(() => {
@@ -34,41 +72,154 @@ export default function GalleryGrid({ items }) {
     };
   }, [selectedIndex, showPrev, showNext]);
 
+  function goToPage(page) {
+    setCurrentPage(Math.min(Math.max(1, page), totalPages));
+  }
+
+  function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  if (items.length === 0) {
+    return null;
+  }
+
+  const rangeStart = filteredItems.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+  const rangeEnd = Math.min(currentPage * itemsPerPage, filteredItems.length);
+
   return (
     <>
-      {/* Masonry grid */}
-      <div className="columns-1 sm:columns-2 md:columns-3 gap-4">
-        {items.map((item, index) => (
-          <div
-            key={item.id}
-            role="button"
-            tabIndex={0}
-            onClick={() => setSelectedIndex(index)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                setSelectedIndex(index);
-              }
-            }}
-            className="mb-4 break-inside-avoid overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm hover:border-blue-300 hover:shadow-md transition-all group cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <Image
-              src={item.src}
-              alt={item.alt}
-              width={item.width}
-              height={item.height}
-              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
-              className="w-full h-auto group-hover:scale-105 transition-transform duration-500"
-              priority={index < 3}
-              placeholder={item.blurDataURL ? "blur" : "empty"}
-              blurDataURL={item.blurDataURL || undefined}
-            />
-            <div className="p-3 border-t border-slate-100">
-              <p className="text-sm text-slate-700 font-medium">{item.caption}</p>
-              <p className="text-[10px] text-slate-400 font-mono mt-0.5">{item.date}</p>
-            </div>
+      {/* Toolbar — category filter + page size */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
+        <div className="flex flex-wrap gap-4">
+          <div>
+            <label
+              htmlFor="gallery-category"
+              className="block text-xs font-mono uppercase tracking-wider text-slate-500 mb-1.5 font-semibold"
+            >
+              Category
+            </label>
+            <select
+              id="gallery-category"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="text-sm p-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            >
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
           </div>
-        ))}
+
+          <div>
+            <label
+              htmlFor="gallery-per-page"
+              className="block text-xs font-mono uppercase tracking-wider text-slate-500 mb-1.5 font-semibold"
+            >
+              Per Page
+            </label>
+            <select
+              id="gallery-per-page"
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              className="text-sm p-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            >
+              {PAGE_SIZE_OPTIONS.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <p className="text-xs font-mono text-slate-400">
+          {filteredItems.length === 0
+            ? "No photos in this category"
+            : `Showing ${rangeStart}–${rangeEnd} of ${filteredItems.length}`}
+        </p>
+      </div>
+
+      {/* Masonry grid */}
+      {pageItems.length > 0 && (
+        <div className="columns-1 sm:columns-2 md:columns-3 gap-4">
+          {pageItems.map((item, index) => (
+            <div
+              key={item.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => setSelectedIndex(index)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setSelectedIndex(index);
+                }
+              }}
+              className="mb-4 break-inside-avoid overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm hover:border-blue-300 hover:shadow-md transition-all group cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <Image
+                src={item.src}
+                alt={item.alt}
+                width={item.width}
+                height={item.height}
+                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+                className="w-full h-auto group-hover:scale-105 transition-transform duration-500"
+                priority={index < 3}
+                placeholder={item.blurDataURL ? "blur" : "empty"}
+                blurDataURL={item.blurDataURL || undefined}
+              />
+              <div className="p-3 border-t border-slate-100">
+                <p className="text-sm text-slate-700 font-medium">{item.caption}</p>
+                <div className="flex items-center justify-between mt-0.5">
+                  <p className="text-[10px] text-slate-400 font-mono">{item.date}</p>
+                  {item.category && (
+                    <p className="text-[10px] text-blue-500 font-mono uppercase tracking-wider">
+                      {item.category}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {filteredItems.length > 0 && (
+        <div className="flex items-center justify-center gap-4 mt-8">
+          <button
+            type="button"
+            onClick={() => goToPage(currentPage - 1)}
+            disabled={currentPage <= 1}
+            className="text-sm font-mono px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40 hover:border-blue-300 hover:text-blue-600 transition-all"
+          >
+            ← Prev
+          </button>
+          <span className="text-xs font-mono text-slate-500">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            type="button"
+            onClick={() => goToPage(currentPage + 1)}
+            disabled={currentPage >= totalPages}
+            className="text-sm font-mono px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40 hover:border-blue-300 hover:text-blue-600 transition-all"
+          >
+            Next →
+          </button>
+        </div>
+      )}
+
+      {/* Back to top */}
+      <div className="flex justify-center mt-10">
+        <button
+          type="button"
+          onClick={scrollToTop}
+          className="text-xs font-mono px-4 py-2 rounded-xl border border-slate-200 text-slate-500 hover:border-blue-300 hover:text-blue-600 transition-all"
+        >
+          ↑ Back to top
+        </button>
       </div>
 
       {/* Lightbox overlay */}
@@ -96,7 +247,7 @@ export default function GalleryGrid({ items }) {
           </button>
 
           {/* Prev / next arrows — only worth showing if there's more than one photo */}
-          {items.length > 1 && (
+          {pageItems.length > 1 && (
             <>
               <button
                 type="button"
