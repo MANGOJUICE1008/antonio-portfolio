@@ -106,19 +106,21 @@ async function main() {
       // `sorted` tells the page this file matched the naming convention and
       // has a real parsed date — the page uses this to make sure an
       // improperly-named file can never be picked as the default "latest" issue.
+      // `sortTimestamp` is exposed (not just used internally) so the page can
+      // defensively re-sort client-side and guarantee newest-to-oldest order.
       sorted: matched,
-      _sortDate: matched ? parsedDate.getTime() : null,
+      sortTimestamp: matched ? parsedDate.getTime() : null,
     });
   }
 
   entries.sort((a, b) => {
-    if (a.sorted && b.sorted) return b._sortDate - a._sortDate; // newest first
+    if (a.sorted && b.sorted) return b.sortTimestamp - a.sortTimestamp; // newest first
     if (a.sorted && !b.sorted) return -1;
     if (!a.sorted && b.sorted) return 1;
     return b.mtimeMs - a.mtimeMs; // both unmatched: most recently added first
   });
 
-  const manifest = entries.map(({ _sortDate, ...rest }) => rest);
+  const manifest = entries;
 
   await fs.mkdir(path.dirname(MANIFEST_PATH), { recursive: true });
   await fs.writeFile(MANIFEST_PATH, JSON.stringify(manifest, null, 2) + "\n");

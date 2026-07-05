@@ -15,24 +15,61 @@ import manifest from "./manifest.json";
 //
 // Files that don't follow this pattern still show up in the archive so
 // you can download/view them — they're just pushed to the bottom, and
-// they can never be picked as the default "Latest Issue" (see the
-// `properlyNamed` / `latest` logic below).
+// they can never be picked as the default "Latest Issue".
 //
-// The newest properly-named issue is shown expanded by default; every
-// other issue opens in a modal viewer (same lightbox pattern as the
-// photo gallery) when clicked. Every issue also has a direct download link.
+// PDFs are embedded with their native toolbar/print chrome hidden (via
+// the #toolbar=0 fragment) and styled flush with the card around them,
+// so they read as part of the page rather than a separate viewer. A
+// small "Inspect" (expand) and "Download" icon sit in the bottom-right
+// corner of the display, the same way a photo's controls would.
 // ============================================================
+
+const ICONS = {
+  inspect: (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} className="w-4.5 h-4.5">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9m11.25-5.25v4.5m0-4.5h-4.5m4.5 0L15 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15m11.25 5.25v-4.5m0 4.5h-4.5m4.5 0L15 15"
+      />
+    </svg>
+  ),
+  download: (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} className="w-4.5 h-4.5">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+      />
+    </svg>
+  ),
+};
+
+// Strips the native PDF viewer's toolbar/print/download chrome so the
+// embed blends into the page instead of looking like a separate app.
+// (Respected by Chrome/Firefox/Edge; Safari mostly ignores it, which is
+// why we still offer our own icon controls and an "open in new tab" link.)
+function cleanEmbedSrc(pdfPath) {
+  return `${pdfPath}#toolbar=0&navpanes=0&scrollbar=0`;
+}
 
 export default function NewsletterPage() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("idle"); // "idle" | "loading" | "success" | "error"
-  const [viewing, setViewing] = useState(null); // the older issue currently open in the modal
+  const [viewing, setViewing] = useState(null); // the issue currently open in the Inspect modal
 
-  const newsletters = manifest;
-  const hasNewsletters = newsletters.length > 0;
+  const hasNewsletters = manifest.length > 0;
 
-  // An unsorted (improperly named) file must never become the default
-  // display — only pick from files that matched the naming convention.
+  // Defensive re-sort on the client: newest properly-named issue first,
+  // any improperly-named file always sinks to the very bottom. This holds
+  // even if manifest.json somehow got out of order.
+  const newsletters = [...manifest].sort((a, b) => {
+    const aKey = a.sorted ? a.sortTimestamp : -Infinity;
+    const bKey = b.sorted ? b.sortTimestamp : -Infinity;
+    if (aKey !== bKey) return bKey - aKey;
+    return b.mtimeMs - a.mtimeMs;
+  });
+
   const properlyNamed = newsletters.filter((n) => n.sorted);
   const latest = properlyNamed[0] ?? null;
   const older = newsletters.filter((n) => n !== latest);
@@ -59,11 +96,6 @@ export default function NewsletterPage() {
     setStatus("loading");
     try {
       // ── Replace this block with your actual form endpoint ──
-      // e.g. Formspree: await fetch("https://formspree.io/f/YOUR_ID", {
-      //   method: "POST",
-      //   body: JSON.stringify({ email }),
-      //   headers: { "Content-Type": "application/json" },
-      // });
       await new Promise((r) => setTimeout(r, 800));
       // ──────────────────────────────────────────────────────
       setStatus("success");
@@ -94,14 +126,7 @@ export default function NewsletterPage() {
         {!latest ? (
           <div className="border border-slate-200 rounded-2xl p-12 bg-white flex flex-col items-center text-center shadow-sm">
             <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center mb-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-5 h-5 text-slate-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.5}
-              >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -115,69 +140,81 @@ export default function NewsletterPage() {
             <p className="text-slate-400 text-xs mt-1 font-mono">
               {hasNewsletters
                 ? "Rename a file to mm,dd,yy, Description.pdf to feature it here."
-                : "Subscribe above to be the first to know."}
+                : "Subscribe below to be the first to know."}
             </p>
           </div>
         ) : (
           <div className="border border-slate-200 rounded-2xl bg-white shadow-sm overflow-hidden">
-            <div className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100">
+            <div className="p-6 pb-4">
               <h3 className="font-bold text-lg text-slate-900">{latest.title}</h3>
-              <a
-                href={latest.pdfPath}
-                download
-                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl transition-all text-xs font-mono whitespace-nowrap shadow-sm flex-shrink-0"
-              >
-                ↓ DOWNLOAD
-              </a>
             </div>
-            <iframe
-              src={latest.pdfPath}
-              title={latest.title}
-              className="w-full h-[70vh] sm:h-[80vh]"
-            />
-            <div className="p-3 text-center border-t border-slate-100">
-              <a
-                href={latest.pdfPath}
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs font-mono text-blue-600 hover:text-blue-700"
-              >
-                Preview not loading? Open in a new tab ↗
-              </a>
+
+            <div className="relative bg-slate-50">
+              <iframe
+                src={cleanEmbedSrc(latest.pdfPath)}
+                title={latest.title}
+                className="w-full h-[70vh] sm:h-[80vh] border-0 block"
+              />
+
+              {/* Inspect / Download — bottom-right corner, same as image controls would sit */}
+              <div className="absolute bottom-4 right-4 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setViewing(latest)}
+                  aria-label="Inspect newsletter"
+                  title="Inspect"
+                  className="w-10 h-10 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white flex items-center justify-center shadow-lg backdrop-blur-sm transition-all"
+                >
+                  {ICONS.inspect}
+                </button>
+                <a
+                  href={latest.pdfPath}
+                  download
+                  aria-label="Download newsletter"
+                  title="Download"
+                  className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-lg transition-all"
+                >
+                  {ICONS.download}
+                </a>
+              </div>
             </div>
           </div>
         )}
       </section>
 
-      {/* Archive of everything else */}
+      {/* Archive of everything else, newest to oldest */}
       {older.length > 0 && (
         <section className="space-y-6">
           <div>
             <h2 className="text-xl font-bold text-slate-900 tracking-tight">Past Issues</h2>
-            <p className="text-sm text-slate-500 mt-1">Browse the full archive</p>
+            <p className="text-sm text-slate-500 mt-1">Browse the full archive, newest first</p>
           </div>
 
           <div className="border border-slate-200 rounded-2xl bg-white shadow-sm divide-y divide-slate-100 overflow-hidden">
             {older.map((issue) => (
               <div
                 key={issue.id}
-                className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-5 hover:bg-slate-50 transition-colors"
+                className="flex items-center gap-3 sm:gap-4 p-5 hover:bg-slate-50 transition-colors"
               >
                 <h3 className="font-bold text-slate-900 truncate flex-grow min-w-0">{issue.title}</h3>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <button
                     type="button"
                     onClick={() => setViewing(issue)}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-600 transition-all text-xs font-mono"
+                    aria-label={`Inspect ${issue.title}`}
+                    title="Inspect"
+                    className="w-9 h-9 rounded-full border border-slate-200 bg-white text-slate-500 hover:border-blue-300 hover:text-blue-600 flex items-center justify-center transition-all"
                   >
-                    VIEW
+                    {ICONS.inspect}
                   </button>
                   <a
                     href={issue.pdfPath}
                     download
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-all text-xs font-mono"
+                    aria-label={`Download ${issue.title}`}
+                    title="Download"
+                    className="w-9 h-9 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-all"
                   >
-                    ↓ DOWNLOAD
+                    {ICONS.download}
                   </a>
                 </div>
               </div>
@@ -186,7 +223,7 @@ export default function NewsletterPage() {
         </section>
       )}
 
-      {/* Signup — now sits below the full archive */}
+      {/* Signup */}
       <section className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm space-y-6">
         <div>
           <p className="text-xs font-mono uppercase tracking-widest text-blue-600 mb-2">Subscribe</p>
@@ -231,7 +268,7 @@ export default function NewsletterPage() {
         )}
       </section>
 
-      {/* Modal viewer for past issues */}
+      {/* Inspect modal */}
       {viewing && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/90 backdrop-blur-sm p-4 sm:p-8 animate-fade-in"
@@ -243,14 +280,7 @@ export default function NewsletterPage() {
             aria-label="Close"
             className="absolute top-4 right-4 sm:top-6 sm:right-6 text-white/70 hover:text-white transition-colors"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.5}
-              className="w-7 h-7"
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-7 h-7">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -260,21 +290,39 @@ export default function NewsletterPage() {
             className="flex flex-col w-full max-w-4xl max-h-[90vh] bg-white rounded-2xl overflow-hidden shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-4 flex items-center justify-between gap-3 border-b border-slate-100 flex-shrink-0">
+            <div className="p-4 border-b border-slate-100 flex-shrink-0">
               <h3 className="font-bold text-slate-900 truncate">{viewing.title}</h3>
+            </div>
+
+            <div className="relative flex-grow bg-slate-50 min-h-[60vh]">
+              <iframe
+                src={cleanEmbedSrc(viewing.pdfPath)}
+                title={viewing.title}
+                className="w-full h-full border-0 block"
+              />
+              <div className="absolute bottom-4 right-4">
+                <a
+                  href={viewing.pdfPath}
+                  download
+                  aria-label="Download newsletter"
+                  title="Download"
+                  className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-lg transition-all"
+                >
+                  {ICONS.download}
+                </a>
+              </div>
+            </div>
+
+            <div className="p-2.5 text-center border-t border-slate-100 flex-shrink-0">
               <a
                 href={viewing.pdfPath}
-                download
-                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl transition-all text-xs font-mono whitespace-nowrap shadow-sm flex-shrink-0"
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs font-mono text-blue-600 hover:text-blue-700"
               >
-                ↓ DOWNLOAD
+                Preview not loading? Open in a new tab ↗
               </a>
             </div>
-            <iframe
-              src={viewing.pdfPath}
-              title={viewing.title}
-              className="w-full flex-grow min-h-[60vh]"
-            />
           </div>
         </div>
       )}
