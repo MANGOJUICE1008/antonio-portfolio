@@ -103,24 +103,27 @@ async function main() {
         : "Unsorted — rename to mm,dd,yy, Description",
       sizeLabel: formatSize(stat.size),
       mtimeMs: stat.mtimeMs,
-      _matched: matched,
+      // `sorted` tells the page this file matched the naming convention and
+      // has a real parsed date — the page uses this to make sure an
+      // improperly-named file can never be picked as the default "latest" issue.
+      sorted: matched,
       _sortDate: matched ? parsedDate.getTime() : null,
     });
   }
 
   entries.sort((a, b) => {
-    if (a._matched && b._matched) return b._sortDate - a._sortDate; // newest first
-    if (a._matched && !b._matched) return -1;
-    if (!a._matched && b._matched) return 1;
+    if (a.sorted && b.sorted) return b._sortDate - a._sortDate; // newest first
+    if (a.sorted && !b.sorted) return -1;
+    if (!a.sorted && b.sorted) return 1;
     return b.mtimeMs - a.mtimeMs; // both unmatched: most recently added first
   });
 
-  const manifest = entries.map(({ _matched, _sortDate, ...rest }) => rest);
+  const manifest = entries.map(({ _sortDate, ...rest }) => rest);
 
   await fs.mkdir(path.dirname(MANIFEST_PATH), { recursive: true });
   await fs.writeFile(MANIFEST_PATH, JSON.stringify(manifest, null, 2) + "\n");
 
-  const unmatchedCount = entries.filter((e) => !e._matched).length;
+  const unmatchedCount = entries.filter((e) => !e.sorted).length;
   console.log(`Wrote ${manifest.length} entries to ${path.relative(process.cwd(), MANIFEST_PATH)}`);
   if (unmatchedCount > 0) {
     console.log(
