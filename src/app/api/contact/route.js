@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MESSAGE_MAX_LENGTH = 500;
 
 export async function POST(request) {
   let body;
@@ -8,6 +9,14 @@ export async function POST(request) {
     body = await request.json();
   } catch {
     return Response.json({ error: "Invalid request." }, { status: 400 });
+  }
+
+  // Honeypot: a bot that fills out every field blindly will fill this one
+  // too, since real visitors never see or reach it. Report success without
+  // sending anything, so the bot has no signal that it was caught.
+  const website = typeof body.website === "string" ? body.website.trim() : "";
+  if (website !== "") {
+    return Response.json({ success: true });
   }
 
   const name = typeof body.name === "string" ? body.name.trim() : "";
@@ -23,6 +32,12 @@ export async function POST(request) {
   }
   if (!message) {
     return Response.json({ error: "Message is required." }, { status: 400 });
+  }
+  if (message.length > MESSAGE_MAX_LENGTH) {
+    return Response.json(
+      { error: `Message must be ${MESSAGE_MAX_LENGTH} characters or fewer.` },
+      { status: 400 }
+    );
   }
 
   const user = process.env.CONTACT_EMAIL_USER;

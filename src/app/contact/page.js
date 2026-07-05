@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MESSAGE_MAX_LENGTH = 500;
 
 function validate(fields) {
   const errors = {};
@@ -19,16 +20,20 @@ function validate(fields) {
 
   if (!fields.message.trim()) {
     errors.message = "Please enter a message.";
+  } else if (fields.message.length > MESSAGE_MAX_LENGTH) {
+    errors.message = `Message must be ${MESSAGE_MAX_LENGTH} characters or fewer.`;
   }
 
   return errors;
 }
 
 export default function ContactPage() {
-  const [fields, setFields] = useState({ name: "", email: "", message: "" });
+  const [fields, setFields] = useState({ name: "", email: "", message: "", website: "" });
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle"); // idle | submitting | success | error
   const [statusMessage, setStatusMessage] = useState("");
+
+  const isSubmitting = status === "submitting";
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -39,6 +44,16 @@ export default function ContactPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+
+    // Honeypot: this field is invisible and unreachable for real visitors.
+    // Only a bot filling out every field blindly would populate it. Bail out
+    // quietly and pretend it worked, rather than telling the bot what tripped it.
+    if (fields.website.trim() !== "") {
+      setStatus("success");
+      setStatusMessage("Thanks for reaching out — I'll get back to you soon.");
+      setFields({ name: "", email: "", message: "", website: "" });
+      return;
+    }
 
     const validationErrors = validate(fields);
     setErrors(validationErrors);
@@ -64,7 +79,7 @@ export default function ContactPage() {
 
       setStatus("success");
       setStatusMessage("Thanks for reaching out — I'll get back to you soon.");
-      setFields({ name: "", email: "", message: "" });
+      setFields({ name: "", email: "", message: "", website: "" });
     } catch (err) {
       setStatus("error");
       setStatusMessage(err.message || "Something went wrong. Please try again later.");
@@ -84,6 +99,22 @@ export default function ContactPage() {
         onSubmit={handleSubmit}
         noValidate
       >
+        {/* Honeypot — hidden from real visitors (off-screen + unreachable by
+            tab/screen reader), but a bot filling every field blindly will
+            fill this too, tipping us off in handleSubmit. */}
+        <div aria-hidden="true" className="absolute left-[-9999px] top-auto w-px h-px overflow-hidden">
+          <label htmlFor="website">Website</label>
+          <input
+            id="website"
+            name="website"
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            value={fields.website}
+            onChange={handleChange}
+          />
+        </div>
+
         <div>
           <label
             htmlFor="name"
@@ -97,9 +128,10 @@ export default function ContactPage() {
             type="text"
             value={fields.name}
             onChange={handleChange}
+            disabled={isSubmitting}
             aria-invalid={!!errors.name}
             aria-describedby={errors.name ? "name-error" : undefined}
-            className={`w-full p-3 rounded-xl border bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+            className={`w-full p-3 rounded-xl border bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:bg-slate-50 disabled:text-slate-400 ${
               errors.name ? "border-red-400" : "border-slate-300"
             }`}
             placeholder="John Doe"
@@ -124,9 +156,10 @@ export default function ContactPage() {
             type="email"
             value={fields.email}
             onChange={handleChange}
+            disabled={isSubmitting}
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? "email-error" : undefined}
-            className={`w-full p-3 rounded-xl border bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+            className={`w-full p-3 rounded-xl border bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:bg-slate-50 disabled:text-slate-400 ${
               errors.email ? "border-red-400" : "border-slate-300"
             }`}
             placeholder="johndoe@gmail.com"
@@ -139,21 +172,32 @@ export default function ContactPage() {
         </div>
 
         <div>
-          <label
-            htmlFor="message"
-            className="block text-xs font-mono uppercase tracking-wider text-slate-500 mb-2 font-semibold"
-          >
-            Message
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label
+              htmlFor="message"
+              className="block text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold"
+            >
+              Message
+            </label>
+            <span
+              className={`text-[10px] font-mono ${
+                fields.message.length >= MESSAGE_MAX_LENGTH ? "text-red-500" : "text-slate-400"
+              }`}
+            >
+              {fields.message.length} / {MESSAGE_MAX_LENGTH}
+            </span>
+          </div>
           <textarea
             id="message"
             name="message"
             rows="4"
+            maxLength={MESSAGE_MAX_LENGTH}
             value={fields.message}
             onChange={handleChange}
+            disabled={isSubmitting}
             aria-invalid={!!errors.message}
             aria-describedby={errors.message ? "message-error" : undefined}
-            className={`w-full p-3 rounded-xl border bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+            className={`w-full p-3 rounded-xl border bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:bg-slate-50 disabled:text-slate-400 ${
               errors.message ? "border-red-400" : "border-slate-300"
             }`}
             placeholder="Tell me about your project..."
@@ -167,10 +211,10 @@ export default function ContactPage() {
 
         <button
           type="submit"
-          disabled={status === "submitting"}
+          disabled={isSubmitting}
           className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-bold p-3.5 rounded-xl shadow-sm transition-all"
         >
-          {status === "submitting" ? "Sending…" : "Send Message"}
+          {isSubmitting ? "Sending…" : "Send Message"}
         </button>
 
         {statusMessage && (

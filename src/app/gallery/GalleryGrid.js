@@ -11,6 +11,7 @@ export default function GalleryGrid({ items }) {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [itemsPerPage, setItemsPerPage] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortDirection, setSortDirection] = useState("asc"); // "asc" = oldest first, "desc" = newest first
 
   // Unique categories present in the manifest, alphabetized, with "All" pinned first.
   const categories = useMemo(() => {
@@ -18,25 +19,32 @@ export default function GalleryGrid({ items }) {
     return ["All", ...Array.from(unique).sort((a, b) => a.localeCompare(b))];
   }, [items]);
 
+  // The manifest is already sorted oldest-first, so "newest first" is just
+  // that order reversed.
+  const orderedItems = useMemo(() => {
+    return sortDirection === "desc" ? [...items].reverse() : items;
+  }, [items, sortDirection]);
+
   const filteredItems = useMemo(() => {
-    if (selectedCategory === "All") return items;
-    return items.filter((item) => (item.category || UNCATEGORIZED) === selectedCategory);
-  }, [items, selectedCategory]);
+    if (selectedCategory === "All") return orderedItems;
+    return orderedItems.filter((item) => (item.category || UNCATEGORIZED) === selectedCategory);
+  }, [orderedItems, selectedCategory]);
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / itemsPerPage));
 
-  // Whenever the filter or page size changes, the current page number may no
-  // longer make sense — snap back to page 1 rather than showing a blank page.
+  // Whenever the filter, sort order, or page size changes, the current page
+  // number may no longer make sense — snap back to page 1 rather than
+  // showing a blank page.
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCategory, itemsPerPage]);
+  }, [selectedCategory, itemsPerPage, sortDirection]);
 
   // Close the lightbox whenever the visible set of photos changes underneath
-  // it (new page, new filter) so it never shows a stale index into a
-  // different array.
+  // it (new page, new filter, new sort order) so it never shows a stale
+  // index into a different array.
   useEffect(() => {
     setSelectedIndex(null);
-  }, [currentPage, selectedCategory, itemsPerPage]);
+  }, [currentPage, selectedCategory, itemsPerPage, sortDirection]);
 
   const pageItems = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
@@ -126,6 +134,45 @@ export default function GalleryGrid({ items }) {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <span
+              id="gallery-sort-label"
+              className="block text-xs font-mono uppercase tracking-wider text-slate-500 mb-1.5 font-semibold"
+            >
+              Sort
+            </span>
+            <div
+              role="group"
+              aria-labelledby="gallery-sort-label"
+              className="inline-flex rounded-xl border border-slate-300 overflow-hidden"
+            >
+              <button
+                type="button"
+                onClick={() => setSortDirection("asc")}
+                aria-pressed={sortDirection === "asc"}
+                className={`px-4 py-2.5 text-sm font-mono transition-all ${
+                  sortDirection === "asc"
+                    ? "bg-blue-600 text-white"
+                    : "bg-white text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                Oldest
+              </button>
+              <button
+                type="button"
+                onClick={() => setSortDirection("desc")}
+                aria-pressed={sortDirection === "desc"}
+                className={`px-4 py-2.5 text-sm font-mono border-l border-slate-300 transition-all ${
+                  sortDirection === "desc"
+                    ? "bg-blue-600 text-white"
+                    : "bg-white text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                Newest
+              </button>
+            </div>
           </div>
 
           <div>
