@@ -43,14 +43,25 @@ const ICONS = {
       />
     </svg>
   ),
+  openInNewTab: (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} className="w-4.5 h-4.5">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+      />
+    </svg>
+  ),
 };
 
 // Strips the native PDF viewer's toolbar/print/download chrome so the
-// embed blends into the page instead of looking like a separate app.
+// embed blends into the page instead of looking like a separate app, and
+// fits each page to the width of the viewer instead of opening at a zoom
+// level that only shows a narrow sliver of the page.
 // (Respected by Chrome/Firefox/Edge; Safari mostly ignores it, which is
-// why we still offer our own icon controls and an "open in new tab" link.)
+// why we still offer our own "open in new tab" icon as a fallback.)
 function cleanEmbedSrc(pdfPath) {
-  return `${pdfPath}#toolbar=0&navpanes=0&scrollbar=0`;
+  return `${pdfPath}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
 }
 
 export default function NewsletterPage() {
@@ -176,6 +187,16 @@ export default function NewsletterPage() {
                 >
                   {ICONS.download}
                 </a>
+                <a
+                  href={latest.pdfPath}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Open newsletter in a new tab"
+                  title="Open in new tab"
+                  className="w-10 h-10 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white flex items-center justify-center shadow-lg backdrop-blur-sm transition-all"
+                >
+                  {ICONS.openInNewTab}
+                </a>
               </div>
             </div>
           </div>
@@ -287,20 +308,20 @@ export default function NewsletterPage() {
 
           {/* Stop propagation so clicking the viewer itself doesn't close it — only the backdrop does */}
           <div
-            className="flex flex-col w-full max-w-4xl max-h-[90vh] bg-white rounded-2xl overflow-hidden shadow-2xl"
+            className="flex flex-col w-full max-w-6xl h-[92vh] bg-white rounded-2xl overflow-hidden shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-4 border-b border-slate-100 flex-shrink-0">
               <h3 className="font-bold text-slate-900 truncate">{viewing.title}</h3>
             </div>
 
-            <div className="relative flex-grow bg-slate-50 min-h-[60vh]">
+            <div className="relative flex-grow bg-slate-50">
               <iframe
                 src={cleanEmbedSrc(viewing.pdfPath)}
                 title={viewing.title}
                 className="w-full h-full border-0 block"
               />
-              <div className="absolute bottom-4 right-4">
+              <div className="absolute bottom-4 right-4 flex items-center gap-2">
                 <a
                   href={viewing.pdfPath}
                   download
@@ -310,18 +331,17 @@ export default function NewsletterPage() {
                 >
                   {ICONS.download}
                 </a>
+                <a
+                  href={viewing.pdfPath}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Open newsletter in a new tab"
+                  title="Open in new tab"
+                  className="w-10 h-10 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white flex items-center justify-center shadow-lg backdrop-blur-sm transition-all"
+                >
+                  {ICONS.openInNewTab}
+                </a>
               </div>
-            </div>
-
-            <div className="p-2.5 text-center border-t border-slate-100 flex-shrink-0">
-              <a
-                href={viewing.pdfPath}
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs font-mono text-blue-600 hover:text-blue-700"
-              >
-                Preview not loading? Open in a new tab ↗
-              </a>
             </div>
           </div>
         </div>
