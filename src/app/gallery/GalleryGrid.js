@@ -74,6 +74,7 @@ export default function GalleryGrid({ items }) {
 
   function goToPage(page) {
     setCurrentPage(Math.min(Math.max(1, page), totalPages));
+    scrollToTop();
   }
 
   function scrollToTop() {
