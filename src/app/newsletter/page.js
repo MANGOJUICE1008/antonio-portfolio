@@ -237,6 +237,16 @@ export default function NewsletterPage() {
                   >
                     {ICONS.download}
                   </a>
+                  <a
+                    href={issue.pdfPath}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`Open ${issue.title} in a new tab`}
+                    title="Open in new tab"
+                    className="w-9 h-9 rounded-full border border-slate-200 bg-white text-slate-500 hover:border-blue-300 hover:text-blue-600 flex items-center justify-center transition-all"
+                  >
+                    {ICONS.openInNewTab}
+                  </a>
                 </div>
               </div>
             ))}
@@ -247,11 +257,10 @@ export default function NewsletterPage() {
       {/* Signup */}
       <section className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm space-y-6">
         <div>
-          <p className="text-xs font-mono uppercase tracking-widest text-blue-600 mb-2">Subscribe</p>
           <h2 className="text-2xl font-bold text-slate-900">Stay in the Loop</h2>
           <p className="text-slate-500 text-sm mt-2 leading-relaxed max-w-xl">
-            Get notified when I publish new issues covering embedded systems, PCB design, controls
-            engineering, and lessons from real projects.
+            Get notified when I publish new issues covering embedded systems, PCB design,
+            engineering projects, and personal updates.
           </p>
         </div>
 
