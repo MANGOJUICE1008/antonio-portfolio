@@ -3,6 +3,11 @@ import { useEffect, useState } from "react";
 import manifest from "./manifest.json";
 import PdfViewer from "./PdfViewer";
 
+// Same pattern used by the contact form's API route — kept in sync so a
+// client-side "this looks like an email" check matches what the server
+// will actually accept.
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 // ============================================================
 // NEWSLETTER ARCHIVE — fully automatic, sorted newest-first.
 //
@@ -61,7 +66,9 @@ const ICONS = {
 
 export default function NewsletterPage() {
   const [email, setEmail] = useState("");
+  const [website, setWebsite] = useState(""); // honeypot — real visitors never see or fill this
   const [status, setStatus] = useState("idle"); // "idle" | "loading" | "success" | "error"
+  const [errorMessage, setErrorMessage] = useState("");
   const [viewing, setViewing] = useState(null); // the issue currently open in the Inspect modal
 
   const hasNewsletters = manifest.length > 0;
@@ -97,16 +104,39 @@ export default function NewsletterPage() {
     };
   }, [viewing]);
 
-  async function handleSubmit() {
-    if (!email || !email.includes("@")) return;
+  async function handleSubmit(e) {
+    e?.preventDefault();
+
+    if (!EMAIL_REGEX.test(email)) {
+      setErrorMessage("Enter a valid email address.");
+      setStatus("error");
+      return;
+    }
+
     setStatus("loading");
+    setErrorMessage("");
+
     try {
-      // ── Replace this block with your actual form endpoint ──
-      await new Promise((r) => setTimeout(r, 800));
-      // ──────────────────────────────────────────────────────
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, website }),
+      });
+
+      // Server responds with JSON even on 4xx/5xx, so we can always read
+      // out a message rather than falling through to the generic one.
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setErrorMessage(data.error || "Something went wrong. Try again or email me directly.");
+        setStatus("error");
+        return;
+      }
+
       setStatus("success");
       setEmail("");
     } catch {
+      setErrorMessage("Something went wrong. Try again or email me directly.");
       setStatus("error");
     }
   }
@@ -264,18 +294,40 @@ export default function NewsletterPage() {
             <p className="text-green-700 text-sm font-mono">You're subscribed. First issue incoming.</p>
           </div>
         ) : (
-          <div className="space-y-2 max-w-md">
+          <form onSubmit={handleSubmit} className="space-y-2 max-w-md" noValidate>
             <div className="flex flex-col sm:flex-row gap-3">
+              <label htmlFor="newsletter-email" className="sr-only">
+                Email address
+              </label>
               <input
+                id="newsletter-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                 placeholder="your@email.com"
-                className="flex-grow p-3 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm font-mono"
+                autoComplete="email"
+                disabled={status === "loading"}
+                aria-invalid={status === "error"}
+                aria-describedby={status === "error" ? "newsletter-error" : undefined}
+                className="flex-grow p-3 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm font-mono disabled:opacity-60 disabled:cursor-not-allowed"
               />
+
+              {/* Honeypot: invisible to real visitors (and skipped by screen readers
+                  and tab order), but a bot that fills every field blindly will fill
+                  this one too. The API route rejects silently if it's non-empty. */}
+              <input
+                type="text"
+                name="website"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                className="absolute -left-[9999px] w-px h-px overflow-hidden"
+              />
+
               <button
-                onClick={handleSubmit}
+                type="submit"
                 disabled={status === "loading"}
                 className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold px-6 py-3 rounded-xl transition-all text-sm font-mono whitespace-nowrap shadow-sm"
               >
@@ -283,12 +335,12 @@ export default function NewsletterPage() {
               </button>
             </div>
             {status === "error" && (
-              <p className="text-red-600 text-xs font-mono">
-                Something went wrong. Try again or email me directly.
+              <p id="newsletter-error" className="text-red-600 text-xs font-mono">
+                {errorMessage}
               </p>
             )}
             <p className="text-[10px] text-slate-400 font-mono">No spam. Unsubscribe any time.</p>
-          </div>
+          </form>
         )}
       </section>
 
