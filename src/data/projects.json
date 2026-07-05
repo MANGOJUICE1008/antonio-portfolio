@@ -1,0 +1,50 @@
+[
+  {
+    "id": "guardian-core",
+    "name": "Guardian Core Telemetry",
+    "status": "Current",
+    "dateRange": "2026-05 to Present",
+    "featured": true,
+    "description": "Remote safety and telemetry system for youth powersports vehicles.",
+    "skills": ["Altium Designer", "High-Frequency PCB Layout", "Next.js"],
+    "highlights": [
+      "Designed custom anti-tamper logic.",
+      "Implemented remote shutoff geofencing.",
+      "Developed comprehensive consumer hardware prototype."
+    ],
+    "imageURL": "/projects/guardian-core.jpg",
+    "projectLink": "/projects/guardian-core"
+  },
+  {
+    "id": "proto-wire",
+    "name": "Proto Wire Engineering Services",
+    "status": "Current",
+    "dateRange": "2026-06 to Present",
+    "featured": true,
+    "description": "Professional engineering services portfolio and business launch.",
+    "skills": ["Next.js", "Tailwind CSS", "Branding"],
+    "highlights": [
+      "Launched professional services company.",
+      "Built custom React portfolio.",
+      "Integrated newsletter architecture."
+    ],
+    "imageURL": "/projects/proto-wire.jpg",
+    "projectLink": "https://github.com/yourusername/proto-wire"
+  },
+  {
+    "id": "cylinder-daq",
+    "name": "Cylinder Pressure DAQ",
+    "status": "Past",
+    "dateRange": "2025-09 to 2026-04",
+    "featured": false,
+    "description": "Indirect cylinder pressure measurement through strain gauge amplification.",
+    "skills": ["High-speed DAQ", "Signal Processing", "DMA"],
+    "highlights": [
+      "Achieved 100 ksps data acquisition.",
+      "Validated hardware through physical testing.",
+      "Drafted technical engineering report."
+    ],
+    "imageURL": "/projects/cylinder-daq.jpg",
+    "projectLink": "/projects/cylinder-daq"
+  }
+]
