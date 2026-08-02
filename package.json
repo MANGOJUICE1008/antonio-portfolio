@@ -3,14 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "node scripts/convert-heic.mjs && node scripts/generate-manifest.mjs && node scripts/generate-newsletters-manifest.mjs",
-    "prebuild": "node scripts/convert-heic.mjs && node scripts/generate-manifest.mjs && node scripts/generate-newsletters-manifest.mjs",
+    "predev": "node scripts/convert-heic.mjs && node scripts/generate-manifest.mjs && node scripts/generate-newsletters-manifest.mjs && node scripts/generate-projects-manifest.mjs",
+    "prebuild": "node scripts/convert-heic.mjs && node scripts/generate-manifest.mjs && node scripts/generate-newsletters-manifest.mjs && node scripts/generate-projects-manifest.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "manifest:projects": "node scripts/generate-projects-manifest.mjs"
   },
   "dependencies": {
+    "esbuild": "^0.28.1",
     "heic-convert": "^2.1.0",
     "next": "16.2.6",
     "nodemailer": "^6.9.14",
@@ -24,5 +26,10 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4"
-  }
+  },
+  "description": "",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
