@@ -1,84 +1,18 @@
 "use client";
 import { useState } from "react";
+import ALL_PROJECTS from "./manifest.json";
 
 // ============================================================
 // PROJECT DATA
-// To add a project: copy one of the objects below and fill it in.
+// This page now reads from manifest.json, which is generated
+// from data/projects.csv by scripts/generate-projects-manifest.mjs
+// (the same way the gallery page reads from its own manifest.json).
 //
-// status:   "current"  → Active / in progress
-//           "previous" → Completed
-//           "future"   → Planned / upcoming
-//
-// tagColor: "blue" | "green" | "purple" | "orange" | "yellow" | "red"
+// To add, remove, or edit a project: edit data/projects.csv —
+// see the column guide in that script's header comment — then
+// re-run `npm run manifest:projects` (or just restart `npm run dev`,
+// since predev/prebuild regenerate it automatically).
 // ============================================================
-const ALL_PROJECTS = [
-  {
-    id: 1,
-    status: "current",
-    title: "Formula SAE Electrical Technical Direction",
-    tags: ["Altium", "Embedded C", "Simulink"],
-    tagColor: "blue",
-    date: "May 2024 – Present",
-    category: "Formula SAE",
-    description:
-      "Directed a 20-person electrical engineering team through 40+ concurrent projects. Overseeing design process integration of critical low-voltage subsystems including battery management, telemetry, and power distribution.",
-    highlights: [
-      "Introduced design-for-manufacturability practices that improved overall reliability.",
-      "Engineered real-time data acquisition tools — 104% increase in testing efficiency.",
-    ],
-  },
-  {
-    id: 2,
-    status: "previous",
-    title: "Vehicle Electrical Harness Optimization",
-    tags: ["Hardware Systems", "Catia V5"],
-    tagColor: "green",
-    date: "Formula SAE Subsystem",
-    category: "Formula SAE",
-    description:
-      "Designed and optimized a complete vehicle electrical harness utilizing proper wire gauge calculators and robust documentation structures.",
-    highlights: [
-      "Achieved a 44% reduction in overall harness weight profile.",
-      "Mitigated electromagnetic interference (EMI) paths across cross-functional chassis subsystems.",
-    ],
-  },
-  {
-    id: 3,
-    status: "previous",
-    title: "Automated Press Line Control System",
-    tags: ["Ladder Logic", "Node-RED", "HMI"],
-    tagColor: "purple",
-    date: "Industrial Automation",
-    category: "Automation",
-    description:
-      "Designed an automated press line control schematic running on an Arduino Opta PLC platform. Engineered functional ladder logic architecture alongside an interactive Node-RED human-machine interface.",
-    highlights: [],
-  },
-  {
-    id: 4,
-    status: "previous",
-    title: "Autonomous AI Pac-Man RC Car",
-    tags: ["ESP32", "Computer Vision"],
-    tagColor: "orange",
-    date: "Autonomous AI Lab",
-    category: "Robotics",
-    description:
-      "Developed a fuzzy logic tracking controller enabling an RC vehicle to autonomously navigate obstacle fields while tracking target tags. Implemented an embedded computer vision neural network pipeline deployed directly on an ESP32 microcontroller.",
-    highlights: [],
-  },
-  // ── ADD NEW PROJECTS BELOW THIS LINE ──────────────────────
-  // {
-  //   id: 5,
-  //   status: "future",
-  //   title: "Your Next Project Title",
-  //   tags: ["Tool 1", "Tool 2"],
-  //   tagColor: "yellow",
-  //   date: "Planned: Q3 2025",
-  //   category: "Category",
-  //   description: "A short description of what this project will accomplish.",
-  //   highlights: [],
-  // },
-];
 
 // ── STATUS CONFIG ─────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -246,6 +180,11 @@ export default function ProjectsPage() {
                           {tag}
                         </span>
                       ))}
+                      {project.featured && (
+                        <span className="text-xs font-mono font-bold px-2.5 py-1 border rounded-md bg-blue-600 border-blue-600 text-white">
+                          ★ Featured
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0">
                       <span className="text-xs text-slate-400 font-mono">{project.date}</span>
@@ -269,6 +208,18 @@ export default function ProjectsPage() {
                         <li key={i}>{renderHighlight(h)}</li>
                       ))}
                     </ul>
+                  )}
+
+                  {/* PDF link */}
+                  {project.pdf && (
+                    <a
+                      href={project.pdf}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-blue-600 hover:text-blue-700"
+                    >
+                      📄 View {project.pdfLabel || "PDF"} →
+                    </a>
                   )}
                 </div>
               );
