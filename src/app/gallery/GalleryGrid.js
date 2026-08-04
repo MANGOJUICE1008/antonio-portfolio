@@ -6,34 +6,6 @@ import Image from "next/image";
 const PAGE_SIZE_OPTIONS = [10, 25, 50];
 const UNCATEGORIZED = "Uncategorized";
 
-// Mirrors the old `columns-1 sm:columns-2 md:columns-3` breakpoints (Tailwind's
-// sm=640px, md=768px), but as a JS value we can use to distribute items
-// ourselves instead of letting the browser's native CSS-columns layout do it.
-function useColumnCount() {
-  const [columnCount, setColumnCount] = useState(1);
-
-  useEffect(() => {
-    const mdQuery = window.matchMedia("(min-width: 768px)");
-    const smQuery = window.matchMedia("(min-width: 640px)");
-
-    function update() {
-      if (mdQuery.matches) setColumnCount(3);
-      else if (smQuery.matches) setColumnCount(2);
-      else setColumnCount(1);
-    }
-
-    update();
-    mdQuery.addEventListener("change", update);
-    smQuery.addEventListener("change", update);
-    return () => {
-      mdQuery.removeEventListener("change", update);
-      smQuery.removeEventListener("change", update);
-    };
-  }, []);
-
-  return columnCount;
-}
-
 export default function GalleryGrid({ items }) {
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -78,22 +50,6 @@ export default function GalleryGrid({ items }) {
     const start = (currentPage - 1) * itemsPerPage;
     return filteredItems.slice(start, start + itemsPerPage);
   }, [filteredItems, currentPage, itemsPerPage]);
-
-  const columnCount = useColumnCount();
-
-  // Round-robin assignment (item 0 -> col 0, item 1 -> col 1, item 2 -> col 2,
-  // item 3 -> col 0, ...) instead of the CSS-columns default of filling one
-  // column completely before moving to the next. This is what makes the grid
-  // read left-to-right, top-to-bottom like a book instead of top-to-bottom
-  // within a column first. Each entry keeps its original pageItems index so
-  // clicks still open the right photo in the lightbox.
-  const columns = useMemo(() => {
-    const cols = Array.from({ length: columnCount }, () => []);
-    pageItems.forEach((item, index) => {
-      cols[index % columnCount].push({ item, index });
-    });
-    return cols;
-  }, [pageItems, columnCount]);
 
   const selected = selectedIndex !== null ? pageItems[selectedIndex] : null;
 
@@ -259,52 +215,52 @@ export default function GalleryGrid({ items }) {
         </p>
       </div>
 
-      {/* Masonry grid — columns are built manually (see `columns` above) and
-          items are assigned round-robin so the reading order goes left to
-          right, top to bottom, like a book, instead of filling one column
-          top-to-bottom before moving to the next. */}
+      {/* Grid — a real CSS grid (not masonry) so every cell is the same
+          size and rows/dates line up cleanly. Each photo sits in a fixed
+          aspect-ratio box; `object-contain` scales the full image down to
+          fit inside without cropping, letterboxing any empty space rather
+          than losing part of the shot. Because every cell is uniform, the
+          browser's own grid placement reads left-to-right, top-to-bottom —
+          no manual reordering needed. */}
       {pageItems.length > 0 && (
-        <div className="flex gap-4 items-start">
-          {columns.map((column, colIndex) => (
-            <div key={colIndex} className="flex-1 min-w-0 flex flex-col gap-4">
-              {column.map(({ item, index }) => (
-                <div
-                  key={item.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setSelectedIndex(index)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setSelectedIndex(index);
-                    }
-                  }}
-                  className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm hover:border-blue-300 hover:shadow-md transition-all group cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <Image
-                    src={item.src}
-                    alt={item.alt}
-                    width={item.width}
-                    height={item.height}
-                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
-                    className="w-full h-auto group-hover:scale-105 transition-transform duration-500"
-                    priority={index < 3}
-                    placeholder={item.blurDataURL ? "blur" : "empty"}
-                    blurDataURL={item.blurDataURL || undefined}
-                  />
-                  <div className="p-3 border-t border-slate-100">
-                    <p className="text-sm text-slate-700 font-medium">{item.caption}</p>
-                    <div className="flex items-center justify-between mt-0.5">
-                      <p className="text-[10px] text-slate-400 font-mono">{item.date}</p>
-                      {item.category && (
-                        <p className="text-[10px] text-blue-500 font-mono uppercase tracking-wider">
-                          {item.category}
-                        </p>
-                      )}
-                    </div>
-                  </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {pageItems.map((item, index) => (
+            <div
+              key={item.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => setSelectedIndex(index)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setSelectedIndex(index);
+                }
+              }}
+              className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm hover:border-blue-300 hover:shadow-md transition-all group cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <div className="relative aspect-square bg-slate-100 overflow-hidden">
+                <Image
+                  src={item.src}
+                  alt={item.alt}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+                  className="object-contain group-hover:scale-105 transition-transform duration-500"
+                  priority={index < 3}
+                  placeholder={item.blurDataURL ? "blur" : "empty"}
+                  blurDataURL={item.blurDataURL || undefined}
+                />
+              </div>
+              <div className="p-3 border-t border-slate-100">
+                <p className="text-sm text-slate-700 font-medium">{item.caption}</p>
+                <div className="flex items-center justify-between mt-0.5">
+                  <p className="text-[10px] text-slate-400 font-mono">{item.date}</p>
+                  {item.category && (
+                    <p className="text-[10px] text-blue-500 font-mono uppercase tracking-wider">
+                      {item.category}
+                    </p>
+                  )}
                 </div>
-              ))}
+              </div>
             </div>
           ))}
         </div>
