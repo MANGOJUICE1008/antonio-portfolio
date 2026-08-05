@@ -115,7 +115,7 @@ export default function HomePage() {
             {featuredProjects.map((project) => (
               <a
                 key={project.id}
-                href="/projects"
+                href={`/projects#${project.id}`}
                 className="block p-5 border border-slate-200 rounded-2xl bg-white shadow-sm hover:border-slate-300 hover:shadow-md transition-all space-y-3"
               >
                 <div className="flex items-center gap-2 flex-wrap">
@@ -161,7 +161,7 @@ export default function HomePage() {
             {currentProjects.map((project) => (
               <a
                 key={project.id}
-                href="/projects"
+                href={`/projects#${project.id}`}
                 className="flex items-start justify-between gap-4 p-4 border border-slate-200 rounded-xl bg-slate-50 hover:border-slate-300 hover:bg-white transition-all"
               >
                 <div className="min-w-0">

@@ -167,7 +167,8 @@ export default function ProjectsPage() {
               return (
                 <div
                   key={project.id}
-                  className="p-6 border border-slate-200 rounded-2xl bg-white shadow-sm hover:border-slate-300 hover:shadow-md transition-all space-y-4"
+                  id={project.id}
+                  className="p-6 border border-slate-200 rounded-2xl bg-white shadow-sm hover:border-slate-300 hover:shadow-md transition-all space-y-4 scroll-mt-24"
                 >
                   {/* Top row */}
                   <div className="flex justify-between items-start flex-wrap gap-2">
