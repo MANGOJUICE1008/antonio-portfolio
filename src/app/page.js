@@ -51,8 +51,16 @@ export default function HomePage() {
             </p>
 
             {/* Employment status */}
-            <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-slate-500 bg-slate-100 border border-slate-200 rounded-full px-3 py-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
+            <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-slate-500 bg-slate-100 border border-slate-200 rounded-full pl-1.5 pr-3 py-1.5">
+              <span className="relative w-5 h-5 rounded-full overflow-hidden bg-white flex-shrink-0">
+                <Image
+                  src="/KUKA.png"
+                  alt="KUKA Robotics logo"
+                  fill
+                  sizes="20px"
+                  className="object-contain"
+                />
+              </span>
               Currently @ KUKA Robotics — Controls Project Engineer
             </div>
 
@@ -78,9 +86,10 @@ export default function HomePage() {
 
       {/* Featured projects */}
       {featuredProjects.length > 0 && (
-        <section className="space-y-4">
-          <div className="flex items-baseline justify-between">
+        <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+          <div>
             <h2 className="text-xl font-bold text-slate-900">Featured Projects</h2>
+            <p className="text-sm text-slate-400 font-mono mt-0.5">Highlighted engineering work</p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
