@@ -15,6 +15,9 @@ export default function HomePage() {
   // and it shows up here automatically next time the manifest regenerates.
   const featuredProjects = ALL_PROJECTS.filter((p) => p.featured);
 
+  // Anything marked "Status: Present" in the CSV shows up here automatically.
+  const currentProjects = ALL_PROJECTS.filter((p) => p.status === "current");
+
   return (
     <div className="space-y-12">
 
@@ -44,7 +47,7 @@ export default function HomePage() {
               Antonio Ristevski
             </h1>
             <p className="text-xl md:text-2xl text-slate-500 max-w-3xl leading-relaxed">
-              Computer & Electrical Engineer specializing in controls, PCB development, and embedded systems.
+              Controls & electrical engineer specializing in control systems, custom PCB design, and embedded hardware.
             </p>
 
             {/* Employment status */}
@@ -68,26 +71,6 @@ export default function HomePage() {
               >
                 View My Resume
               </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Current project tracker */}
-      <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900">Current Projects</h2>
-          <p className="text-sm text-slate-400 font-mono mt-0.5">Live operational scope</p>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <div className="flex justify-between text-sm font-medium mb-1.5">
-              <span className="text-slate-700">Formula SAE Low-Voltage System Optimization</span>
-              <span className="text-blue-600">85%</span>
-            </div>
-            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-              <div className="bg-blue-600 h-full w-[85%] rounded-full" />
             </div>
           </div>
         </div>
@@ -132,17 +115,62 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* Latest updates */}
-      <section className="space-y-4">
-        <h2 className="text-xl font-bold text-slate-900">Latest Updates</h2>
-        <ul className="space-y-4 border-l-2 border-slate-200 pl-5">
-          <li>
-            <span className="font-semibold block text-sm text-blue-600 font-mono">August 2025</span>
-            <p className="text-slate-600 mt-0.5">
-              Successfully wrapped engineering verification routines at validation internship.
-            </p>
-          </li>
-        </ul>
+      {/* Current project tracker */}
+      <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+        <div className="flex items-baseline justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">Current Projects</h2>
+            <p className="text-sm text-slate-400 font-mono mt-0.5">Live operational scope</p>
+          </div>
+          <a href="/projects" className="text-xs font-mono text-blue-600 hover:text-blue-700">
+            View all →
+          </a>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <div className="flex justify-between text-sm font-medium mb-1.5">
+              <span className="text-slate-700">Formula SAE Low-Voltage System Optimization</span>
+              <span className="text-blue-600">85%</span>
+            </div>
+            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div className="bg-blue-600 h-full w-[85%] rounded-full" />
+            </div>
+          </div>
+        </div>
+
+        {/* Current projects pulled from data/projects.csv (Status: Present) */}
+        {currentProjects.length > 0 && (
+          <div className="space-y-3 pt-4 border-t border-slate-100">
+            {currentProjects.map((project) => (
+              <a
+                key={project.id}
+                href="/projects"
+                className="flex items-start justify-between gap-4 p-4 border border-slate-200 rounded-xl bg-slate-50 hover:border-slate-300 hover:bg-white transition-all"
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    {project.tags.slice(0, 3).map((tag) => (
+                      <span
+                        key={tag}
+                        className={`text-[10px] font-mono font-bold px-2 py-0.5 border rounded-md ${TAG_COLORS[project.tagColor]}`}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <h3 className="font-bold text-sm text-slate-900">{project.title}</h3>
+                  <p className="text-slate-500 text-xs leading-relaxed mt-1 line-clamp-2">
+                    {project.description}
+                  </p>
+                </div>
+                <span className="text-xs font-mono text-blue-600 flex-shrink-0 mt-0.5">
+                  View →
+                </span>
+              </a>
+            ))}
+          </div>
+        )}
       </section>
 
     </div>
