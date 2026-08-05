@@ -81,9 +81,6 @@ export default function HomePage() {
         <section className="space-y-4">
           <div className="flex items-baseline justify-between">
             <h2 className="text-xl font-bold text-slate-900">Featured Projects</h2>
-            <a href="/projects" className="text-xs font-mono text-blue-600 hover:text-blue-700">
-              View all →
-            </a>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -127,21 +124,9 @@ export default function HomePage() {
           </a>
         </div>
 
-        <div className="space-y-4">
-          <div>
-            <div className="flex justify-between text-sm font-medium mb-1.5">
-              <span className="text-slate-700">Formula SAE Low-Voltage System Optimization</span>
-              <span className="text-blue-600">85%</span>
-            </div>
-            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-              <div className="bg-blue-600 h-full w-[85%] rounded-full" />
-            </div>
-          </div>
-        </div>
-
         {/* Current projects pulled from data/projects.csv (Status: Present) */}
         {currentProjects.length > 0 && (
-          <div className="space-y-3 pt-4 border-t border-slate-100">
+          <div className="space-y-3">
             {currentProjects.map((project) => (
               <a
                 key={project.id}
