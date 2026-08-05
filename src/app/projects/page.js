@@ -82,7 +82,7 @@ export default function ProjectsPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
+      <div className="opacity-0 animate-fade-in">
         <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
           Engineering Projects
         </h1>
@@ -96,7 +96,10 @@ export default function ProjectsPage() {
       <div className="flex flex-col md:flex-row gap-8">
 
         {/* ── Sidebar ── */}
-        <aside className="md:w-52 flex-shrink-0 space-y-2">
+        <aside
+          className="md:w-52 flex-shrink-0 space-y-2 opacity-0 animate-fade-in"
+          style={{ animationDelay: "80ms" }}
+        >
           <p className="text-[10px] font-mono uppercase tracking-widest text-slate-400 mb-3">
             Filter by Status
           </p>
@@ -155,7 +158,10 @@ export default function ProjectsPage() {
         </aside>
 
         {/* ── Project Cards ── */}
-        <div className="flex-grow space-y-4">
+        <div
+          className="flex-grow space-y-4 opacity-0 animate-fade-in"
+          style={{ animationDelay: "160ms" }}
+        >
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center border border-slate-200 rounded-2xl bg-white">
               <p className="text-slate-400 font-mono text-sm">No projects in this category yet.</p>

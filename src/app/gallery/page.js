@@ -29,7 +29,7 @@ export default function GalleryPage() {
   return (
     <div className="space-y-10">
       {/* Header */}
-      <div>
+      <div className="opacity-0 animate-fade-in">
         <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">Gallery</h1>
         <p className="text-sm text-slate-500 mt-1">
           Engineering snapshots, team moments, project milestones, and other highlights
@@ -39,7 +39,10 @@ export default function GalleryPage() {
 
       {/* How-to banner — shown until photos are added */}
       {!hasPhotos && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-xs font-mono text-blue-700 space-y-1">
+        <div
+          className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-xs font-mono text-blue-700 space-y-1 opacity-0 animate-fade-in"
+          style={{ animationDelay: "80ms" }}
+        >
           <p className="font-bold text-blue-700">{"// HOW TO ADD PHOTOS"}</p>
           <p>1. Drop image files into <span className="font-bold">/public/gallery/</span>.</p>
           <p>2. Supported formats: <span className="font-bold">.png</span>, <span className="font-bold">.jpg</span>, <span className="font-bold">.heic</span>.</p>
@@ -52,7 +55,12 @@ export default function GalleryPage() {
         </div>
       )}
 
-      <GalleryGrid items={GALLERY_ITEMS} />
+      <div
+        className="opacity-0 animate-fade-in"
+        style={{ animationDelay: hasPhotos ? "80ms" : "160ms" }}
+      >
+        <GalleryGrid items={GALLERY_ITEMS} />
+      </div>
     </div>
   );
 }

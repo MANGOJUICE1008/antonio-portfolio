@@ -144,7 +144,7 @@ export default function NewsletterPage() {
   return (
     <div className="space-y-12">
       {/* Header */}
-      <div>
+      <div className="opacity-0 animate-fade-in">
         <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">Newsletter</h1>
         <p className="text-sm text-slate-500 mt-1">
           Engineering insights, project updates, and other highlights
@@ -153,7 +153,7 @@ export default function NewsletterPage() {
       </div>
 
       {/* Latest issue — shown expanded by default (always a properly-named file, never "unsorted") */}
-      <section className="space-y-4">
+      <section className="space-y-4 opacity-0 animate-fade-in" style={{ animationDelay: "80ms" }}>
         <div>
           <h2 className="text-xl font-bold text-slate-900 tracking-tight">Latest Issue</h2>
         </div>
@@ -229,7 +229,7 @@ export default function NewsletterPage() {
 
       {/* Archive of everything else, newest to oldest */}
       {older.length > 0 && (
-        <section className="space-y-6">
+        <section className="space-y-6 opacity-0 animate-fade-in" style={{ animationDelay: "160ms" }}>
           <div>
             <h2 className="text-xl font-bold text-slate-900 tracking-tight">Past Issues</h2>
             <p className="text-sm text-slate-500 mt-1">Browse the full archive, newest first</p>
@@ -279,7 +279,10 @@ export default function NewsletterPage() {
       )}
 
       {/* Signup */}
-      <section className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm space-y-6">
+      <section
+        className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm space-y-6 opacity-0 animate-fade-in"
+        style={{ animationDelay: older.length > 0 ? "240ms" : "160ms" }}
+      >
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Stay in the Loop</h2>
           <p className="text-slate-500 text-sm mt-2 leading-relaxed max-w-xl">

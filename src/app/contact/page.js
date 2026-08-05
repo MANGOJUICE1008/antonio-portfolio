@@ -88,14 +88,15 @@ export default function ContactPage() {
 
   return (
     <div className="max-w-xl mx-auto space-y-8">
-      <div>
+      <div className="opacity-0 animate-fade-in">
         <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">Contact</h1>
         <p className="text-sm text-slate-500 mt-1">Reach out — I'd love to connect.</p>
         <div className="h-1 w-12 bg-blue-600 rounded mt-4" />
       </div>
 
       <form
-        className="space-y-5 bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm"
+        className="space-y-5 bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm opacity-0 animate-fade-in"
+        style={{ animationDelay: "80ms" }}
         onSubmit={handleSubmit}
         noValidate
       >
@@ -231,7 +232,10 @@ export default function ContactPage() {
       </form>
 
       {/* Direct contact links */}
-      <div className="flex flex-col gap-3 pt-2">
+      <div
+        className="flex flex-col gap-3 pt-2 opacity-0 animate-fade-in"
+        style={{ animationDelay: "160ms" }}
+      >
         <a
           href="https://github.com/MANGOJUICE1008"
           target="_blank"

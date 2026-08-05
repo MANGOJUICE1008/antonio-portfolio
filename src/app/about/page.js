@@ -3,7 +3,7 @@ export default function AboutPage() {
     <div className="space-y-12">
 
       {/* Bio */}
-      <section className="space-y-4">
+      <section className="space-y-4 opacity-0 animate-fade-in">
         <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">About Me</h1>
         <div className="h-1 w-12 bg-blue-600 rounded" />
         <p className="text-slate-600 leading-relaxed text-base md:text-lg max-w-3xl pt-2">
@@ -15,7 +15,10 @@ export default function AboutPage() {
       </section>
 
       {/* People I've worked with */}
-      <section className="space-y-6 border-t border-slate-200 pt-10">
+      <section
+        className="space-y-6 border-t border-slate-200 pt-10 opacity-0 animate-fade-in"
+        style={{ animationDelay: "80ms" }}
+      >
         <div>
           <h2 className="text-2xl font-bold text-slate-900 tracking-tight">People I've Worked With</h2>
           <p className="text-sm text-slate-500 mt-1">
@@ -62,7 +65,10 @@ export default function AboutPage() {
       </section>
 
       {/* Quick links */}
-      <section className="space-y-4 border-t border-slate-200 pt-10">
+      <section
+        className="space-y-4 border-t border-slate-200 pt-10 opacity-0 animate-fade-in"
+        style={{ animationDelay: "160ms" }}
+      >
         <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Find Me Elsewhere</h2>
         <div className="flex flex-wrap gap-3">
           <a
