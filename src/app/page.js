@@ -1,5 +1,7 @@
 import Image from "next/image";
 import ALL_PROJECTS from "./projects/manifest.json";
+import GALLERY_ITEMS from "./gallery/manifest.json";
+import NewsletterTeaser from "./NewsletterTeaser";
 
 const TAG_COLORS = {
   blue:   "bg-blue-50   border-blue-200   text-blue-700",
@@ -18,11 +20,15 @@ export default function HomePage() {
   // Anything marked "Status: Present" in the CSV shows up here automatically.
   const currentProjects = ALL_PROJECTS.filter((p) => p.status === "current");
 
+  // gallery/manifest.json is sorted oldest-first, so reverse it to surface
+  // the most recent photos here.
+  const recentPhotos = [...GALLERY_ITEMS].reverse().slice(0, 4);
+
   return (
     <div className="space-y-12">
 
       {/* Hero */}
-      <section className="py-6">
+      <section className="py-6 opacity-0 animate-fade-in">
         {/* Photo comes first in the DOM and in reading order — stacks above
             the text on mobile (flex-col), sits to its left on desktop
             (md:flex-row). */}
@@ -86,7 +92,10 @@ export default function HomePage() {
 
       {/* Featured projects */}
       {featuredProjects.length > 0 && (
-        <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+        <section
+          className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6 opacity-0 animate-fade-in"
+          style={{ animationDelay: "80ms" }}
+        >
           <div>
             <h2 className="text-xl font-bold text-slate-900">Featured Projects</h2>
             <p className="text-sm text-slate-400 font-mono mt-0.5">Highlighted engineering work</p>
@@ -122,7 +131,10 @@ export default function HomePage() {
       )}
 
       {/* Current project tracker */}
-      <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+      <section
+        className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6 opacity-0 animate-fade-in"
+        style={{ animationDelay: "160ms" }}
+      >
         <div className="flex items-baseline justify-between">
           <div>
             <h2 className="text-xl font-bold text-slate-900">Current Projects</h2>
@@ -166,6 +178,49 @@ export default function HomePage() {
           </div>
         )}
       </section>
+
+      {/* Gallery teaser */}
+      {recentPhotos.length > 0 && (
+        <section
+          className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6 opacity-0 animate-fade-in"
+          style={{ animationDelay: "240ms" }}
+        >
+          <div className="flex items-baseline justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">Gallery</h2>
+              <p className="text-sm text-slate-400 font-mono mt-0.5">Recent snapshots</p>
+            </div>
+            <a href="/gallery" className="text-xs font-mono text-blue-600 hover:text-blue-700">
+              View more →
+            </a>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {recentPhotos.map((photo) => (
+              <a
+                key={photo.id}
+                href="/gallery"
+                className="group relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm hover:border-slate-300 hover:shadow-md transition-all"
+              >
+                <Image
+                  src={photo.src}
+                  alt={photo.alt}
+                  fill
+                  sizes="(max-width: 640px) 50vw, 25vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  placeholder={photo.blurDataURL ? "blur" : "empty"}
+                  blurDataURL={photo.blurDataURL || undefined}
+                />
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Newsletter signup teaser */}
+      <div className="opacity-0 animate-fade-in" style={{ animationDelay: "320ms" }}>
+        <NewsletterTeaser />
+      </div>
 
     </div>
   );
