@@ -11,7 +11,7 @@ export default function GalleryGrid({ items }) {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [itemsPerPage, setItemsPerPage] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortDirection, setSortDirection] = useState("asc"); // "asc" = oldest first, "desc" = newest first
+  const [sortDirection, setSortDirection] = useState("desc"); // "asc" = oldest first, "desc" = newest first
 
   // Unique categories present in the manifest, alphabetized, with "All" pinned first.
   const categories = useMemo(() => {
@@ -19,11 +19,27 @@ export default function GalleryGrid({ items }) {
     return ["All", ...Array.from(unique).sort((a, b) => a.localeCompare(b))];
   }, [items]);
 
-  // The manifest is already sorted oldest-first, so "newest first" is just
-  // that order reversed.
+  // Defensive re-sort on the client: properly-named photos ordered by their
+  // real parsed date, any improperly-named file always sinks to the very
+  // bottom. This holds even if manifest.json somehow got out of order.
+  const baseItems = useMemo(() => {
+    return [...items].sort((a, b) => {
+      if (a.sorted && b.sorted) return a.sortTimestamp - b.sortTimestamp; // oldest first
+      if (a.sorted && !b.sorted) return -1;
+      if (!a.sorted && b.sorted) return 1;
+      return a.mtimeMs - b.mtimeMs; // both unsorted: fall back to file time
+    });
+  }, [items]);
+
+  // Toggling "Oldest"/"Newest" only reverses the properly-dated photos —
+  // improperly-named ones stay pinned to the bottom either way, since they
+  // don't have a real date to sort by.
   const orderedItems = useMemo(() => {
-    return sortDirection === "desc" ? [...items].reverse() : items;
-  }, [items, sortDirection]);
+    const dated = baseItems.filter((item) => item.sorted);
+    const undated = baseItems.filter((item) => !item.sorted);
+    const directional = sortDirection === "desc" ? [...dated].reverse() : dated;
+    return [...directional, ...undated];
+  }, [baseItems, sortDirection]);
 
   const filteredItems = useMemo(() => {
     if (selectedCategory === "All") return orderedItems;

@@ -134,23 +134,28 @@ async function main() {
       width,
       height,
       blurDataURL,
-      _matched: matched,
-      _sortDate: matched ? parsedDate.getTime() : null,
+      // `sorted` tells the page this file matched the naming convention and
+      // has a real parsed date — the page uses this to make sure an
+      // improperly-named file always sinks to the bottom, no matter which
+      // sort direction is selected. `sortTimestamp` is exposed (not just
+      // used internally) so the page can defensively re-sort client-side.
+      sorted: matched,
+      sortTimestamp: matched ? parsedDate.getTime() : null,
     });
   }
 
   entries.sort((a, b) => {
-    if (a._matched && b._matched) return a._sortDate - b._sortDate;
-    if (a._matched && !b._matched) return -1;
-    if (!a._matched && b._matched) return 1;
+    if (a.sorted && b.sorted) return a.sortTimestamp - b.sortTimestamp;
+    if (a.sorted && !b.sorted) return -1;
+    if (!a.sorted && b.sorted) return 1;
     return a.mtimeMs - b.mtimeMs; // both unmatched: fall back to file time
   });
 
-  const manifest = entries.map(({ _matched, _sortDate, ...rest }) => rest);
+  const manifest = entries;
 
   await fs.writeFile(MANIFEST_PATH, JSON.stringify(manifest, null, 2) + "\n");
 
-  const unmatchedCount = entries.filter((e) => !e._matched).length;
+  const unmatchedCount = entries.filter((e) => !e.sorted).length;
   console.log(`Wrote ${manifest.length} entries to ${path.relative(process.cwd(), MANIFEST_PATH)}`);
   if (unmatchedCount > 0) {
     console.log(
