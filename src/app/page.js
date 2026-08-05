@@ -20,9 +20,19 @@ export default function HomePage() {
   // Anything marked "Status: Present" in the CSV shows up here automatically.
   const currentProjects = ALL_PROJECTS.filter((p) => p.status === "current");
 
-  // gallery/manifest.json is sorted oldest-first, so reverse it to surface
-  // the most recent photos here.
-  const recentPhotos = [...GALLERY_ITEMS].reverse().slice(0, 4);
+  // Only pull properly-dated photos for the homepage highlight (the
+  // "sorted" flag from generate-manifest.mjs), newest first — otherwise
+  // reversing the raw manifest would put undated photos, which the
+  // generator always parks at the bottom, at the very front instead.
+  const datedPhotos = GALLERY_ITEMS.filter((photo) => photo.sorted).sort(
+    (a, b) => b.sortTimestamp - a.sortTimestamp
+  );
+  // Only fall back to undated photos if there aren't any properly-named
+  // ones yet, so the section isn't empty on a brand-new gallery.
+  const recentPhotos =
+    datedPhotos.length > 0
+      ? datedPhotos.slice(0, 4)
+      : [...GALLERY_ITEMS].sort((a, b) => b.mtimeMs - a.mtimeMs).slice(0, 4);
 
   return (
     <div className="space-y-12">
